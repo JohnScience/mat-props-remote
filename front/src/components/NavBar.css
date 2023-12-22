@@ -1,0 +1,13 @@
+.navbar {
+    list-style-type: none;
+    margin: 0;
+    padding: 1em;
+    display: flex;
+    height: 8vh;
+}
+
+.navbar li {
+    display: inline-block;
+    /* You can also use "display: inline;" if you want the list items to have no spacing between them */
+    margin-right: 10px; /* Adjust the margin as needed to create spacing between the list items */
+}
