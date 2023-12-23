@@ -1,0 +1,9 @@
+[package]
+name = "back"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = "4.4.0"
+utoipa = { version = "4.1.0", features = ["actix_extras"] }
+utoipa-swagger-ui = { version = "5.0.0", features = ["actix-web"] }
