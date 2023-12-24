@@ -7,3 +7,7 @@ edition = "2021"
 actix-web = "4.4.0"
 utoipa = { version = "4.1.0", features = ["actix_extras"] }
 utoipa-swagger-ui = { version = "5.0.0", features = ["actix-web"] }
+mat-props = { path = "../mat-props" }
+futures-util = "0.3"
+heapless = "0.8"
+bytemuck = { version = "1.14.0", features = ["derive"] }
