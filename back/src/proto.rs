@@ -9,7 +9,11 @@ macro_rules! decl_message {
         #[derive(Clone, Copy)]
         #[repr(C)]
         pub(crate) struct $name {
-            /// 0: little endian, 1: big endian
+            /// 0: little endian, 1: big endian.
+            ///
+            /// The endianness is the first field to enable optimization where
+            /// the bytes of multi-byte fileds are swapped to match the native endianness
+            /// of the server as they are received.
             pub(crate) endianness: u8,
             $($vis $field: $ty),+
         }
