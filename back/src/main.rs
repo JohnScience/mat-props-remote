@@ -288,4 +288,11 @@ mod tests {
             48
         );
     }
+
+    #[test]
+    fn check_py_struct_format_string_for_args_message() {
+        let s = 
+            crate::elastic_modules_for_unidirectional_composite_extra::ArgsMessage::to_py_struct_format_string();
+        assert_eq!(s, "BBxxxxxxddddd");
+    }
 }
