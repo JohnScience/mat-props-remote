@@ -3,6 +3,7 @@ use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
 mod endianness;
+mod proto;
 
 use endianness::Endianness;
 
@@ -11,56 +12,19 @@ use endianness::Endianness;
 struct ApiDoc;
 
 mod elastic_modules_for_unidirectional_composite_extra {
+    use crate::proto::decl_message;
     use crate::Endianness;
-    use bytemuck::AnyBitPattern;
     use futures_util::{Future, StreamExt};
     use std::pin::Pin;
 
-    #[derive(AnyBitPattern, Clone, Copy)]
-    #[repr(C)]
-    pub(crate) struct ArgsMessage {
-        // 0: little endian, 1: big endian
-        pub(crate) endianness: u8,
+    decl_message!(ArgsMessage {
         pub(crate) number_of_model: u8,
         pub(crate) fibre_content: f64,
         pub(crate) e_for_fiber: f64,
         pub(crate) nu_for_fiber: f64,
         pub(crate) e_for_matrix: f64,
-        pub(crate) nu_for_matrix: f64,
-    }
-
-    impl ArgsMessage {
-        const SIZE: usize = std::mem::size_of::<Self>();
-
-        #[cfg(test)]
-        #[inline]
-        pub(crate) fn into_bytes(self) -> [u8; Self::SIZE] {
-            debug_assert!(core::mem::size_of::<Self>() == core::mem::size_of::<[u8; Self::SIZE]>());
-            unsafe { std::mem::transmute::<Self, [u8; Self::SIZE]>(self) }
-        }
-
-        #[inline]
-        pub(crate) fn endianness(&self) -> Option<Endianness> {
-            Endianness::try_from_u8(self.endianness)
-        }
-
-        pub(crate) fn reorder_bytes(&mut self) {
-            let ArgsMessage {
-                endianness: _,
-                number_of_model: _,
-                fibre_content,
-                e_for_fiber,
-                nu_for_fiber,
-                e_for_matrix,
-                nu_for_matrix,
-            } = self;
-            *fibre_content = f64::from_bits(fibre_content.to_bits().swap_bytes());
-            *e_for_fiber = f64::from_bits(e_for_fiber.to_bits().swap_bytes());
-            *nu_for_fiber = f64::from_bits(nu_for_fiber.to_bits().swap_bytes());
-            *e_for_matrix = f64::from_bits(e_for_matrix.to_bits().swap_bytes());
-            *nu_for_matrix = f64::from_bits(nu_for_matrix.to_bits().swap_bytes());
-        }
-    }
+        pub(crate) nu_for_matrix: f64
+    });
 
     // TODO: an implementation for any type that implements `AnyBitPattern` and suggest it for actix_web
     impl actix_web::FromRequest for ArgsMessage {
@@ -189,6 +153,7 @@ async fn main() -> std::io::Result<()> {
 
 #[cfg(test)]
 mod tests {
+
     #[test]
     fn elastic_modules_for_unidirectional_composite() {
         let res =
@@ -311,6 +276,16 @@ mod tests {
         assert_eq!(
             [46, 59, 248, 148, 221, 39, 6, 64],
             u64::to_le_bytes(f64::to_bits(2.769465602708258)),
+        );
+    }
+
+    #[test]
+    fn check_args_message_size() {
+        assert_eq!(
+            core::mem::size_of::<
+                crate::elastic_modules_for_unidirectional_composite_extra::ArgsMessage,
+            >(),
+            48
         );
     }
 }
