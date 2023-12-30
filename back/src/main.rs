@@ -6,6 +6,11 @@ mod elastic_modules_for_unidirectional_composite_extra;
 mod endianness;
 mod proto;
 
+pub(crate) use elastic_modules_for_unidirectional_composite_extra::{
+    ElasticModulesForUnidirectionalCompositeArgsMessage,
+    ElasticModulesForUnidirectionalCompositeResponseMessage,
+    ElasticModulesForUnidirectionalCompositeResponseParcel,
+};
 use endianness::Endianness;
 
 #[derive(OpenApi)]
@@ -17,12 +22,6 @@ use endianness::Endianness;
     ))
 )]
 struct ApiDoc;
-
-pub(crate) use elastic_modules_for_unidirectional_composite_extra::{
-    ElasticModulesForUnidirectionalCompositeArgsMessage,
-    ElasticModulesForUnidirectionalCompositeResponseMessage,
-    ElasticModulesForUnidirectionalCompositeResponseParcel,
-};
 
 #[utoipa::path(
     get,
@@ -40,7 +39,7 @@ async fn index() -> impl Responder {
     post,
     request_body(
         content = ElasticModulesForUnidirectionalCompositeArgsMessage,
-        description = "Python struct format string: \"BBxxxxxxddddd\". See <https://docs.python.org/3/library/struct.html#format-strings>. \
+        description = "Python struct format string: \"BBxxxxxxddddd\". See <https://docs.python.org/3/library/struct.html#format-strings>.\n\n\
         See schema for the order of the fields (but not their sizes).",
         content_type = "application/x.elastic-modules-for-unidirectional-composite-args-message",
         example = json!("[0, 2, 0, 0, 0, 0, 0, 0, 154, 153, 153, 153, 153, 153, 201, 63, 0, 0, 0, 0, 0, 0, 89, 64, 51, 51, 51, 51, 51, 51, 211, 63, 0, 0, 0, 0, 0, 0, 20, 64, 154, 153, 153, 153, 153, 153, 201, 63]"),
@@ -49,7 +48,8 @@ async fn index() -> impl Responder {
         (
             status = 200,
             description = "Computes elastic_modules_for_unidirectional_composite. \
-            Returns the binary representation of [E1, E2, E3, nu12, nu13, nu23, G12, G13, G23] with the requested endianness.",
+            Returns the binary representation of [E1, E2, E3, nu12, nu13, nu23, G12, G13, G23] with the requested endianness.\n\n\
+            Python struct format string: \"ddddddddd\". See <https://docs.python.org/3/library/struct.html#format-strings>.",
             body = ElasticModulesForUnidirectionalCompositeResponseMessage,
             content_type = "application/x.elastic-modules-for-unidirectional-composite-response-message"
         ),
