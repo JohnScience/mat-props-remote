@@ -21,9 +21,12 @@ macro_rules! decl_message {
         )+
     };
     ($name:ident {
-        $($vis:vis $field:ident : $ty:ident),+
+        $(
+            $(#[$attr:meta])*
+            $vis:vis $field:ident : $ty:ident
+        ),+
     }) => {
-        #[derive(Clone, Copy)]
+        #[derive(Clone, Copy, utoipa::ToSchema)]
         #[repr(C)]
         pub(crate) struct $name {
             /// 0: little endian, 1: big endian.
@@ -31,8 +34,12 @@ macro_rules! decl_message {
             /// The endianness is the first field to enable optimization where
             /// the bytes of multi-byte fileds are swapped to match the native endianness
             /// of the server as they are received.
+            #[schema(minimum = 0, maximum = 1)]
             pub(crate) endianness: u8,
-            $($vis $field: $ty),+
+            $(
+                $(#[$attr])*
+                $vis $field: $ty
+            ),+
         }
 
         impl $name {

@@ -248,6 +248,7 @@ dependencies = [
  "futures-util",
  "heapless",
  "mat-props",
+ "serde_json",
  "utoipa",
  "utoipa-swagger-ui",
 ]
