@@ -5,12 +5,20 @@ edition = "2021"
 
 [dependencies]
 actix-web = "4.4.0"
-utoipa = { version = "4.1.0", features = ["actix_extras", "preserve_order"] }
-utoipa-swagger-ui = { version = "5.0.0", features = ["actix-web"] }
+# utoipa = { version = "4.1.0", features = ["actix_extras", "preserve_order"] }
+utoipa = { path = "../../utoipa/utoipa", features = [
+    "actix_extras",
+    "preserve_order",
+] }
+# utoipa-swagger-ui = { version = "5.0.0", features = ["actix-web"] }
+utoipa-swagger-ui = { path = "../../utoipa/utoipa-swagger-ui", features = [
+    "actix-web",
+] }
 mat-props = { path = "../mat-props" }
 futures-util = "0.3"
 heapless = { git = "https://github.com/JohnScience/heapless", rev = "6421b46" }
 bytemuck = { version = "1.14.0", features = ["derive"] }
 serde_json = "1.0.108"
+serde-big-array = "0.5.1"
 # byteorder = "1.5"
 # thiserror = "1.0.52"

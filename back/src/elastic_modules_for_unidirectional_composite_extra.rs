@@ -1,4 +1,3 @@
-use crate::proto::decl_message;
 use crate::Endianness;
 use actix_web::body::MessageBody;
 use bytemuck::{Pod, Zeroable};
@@ -6,19 +5,11 @@ use futures_util::{Future, StreamExt};
 use std::pin::Pin;
 use utoipa::ToSchema;
 
-decl_message!(ElasticModulesForUnidirectionalCompositeArgsMessage {
-    #[schema(minimum = 0, maximum = 2)]
-    pub(crate) number_of_model: u8,
-    pub(crate) fibre_content: f64,
-    pub(crate) e_for_fiber: f64,
-    pub(crate) nu_for_fiber: f64,
-    pub(crate) e_for_matrix: f64,
-    pub(crate) nu_for_matrix: f64
-});
+pub(crate) use crate::proto::ElasticModulesForUnidirectionalCompositeArgsMessage;
 
 #[derive(Clone, Copy, ToSchema, Pod, Zeroable)]
 #[repr(C)]
-#[schema(example = json!([211, 61, 106, 38, 128, 1, 68, 64, 159, 242, 73, 223, 39, 242, 26, 64, 159, 242, 73, 223, 39, 242, 26, 64, 172, 144, 171, 185, 107, 170, 163, 63, 172, 144, 171, 185, 107, 170, 163, 63, 42, 75, 141, 167, 161, 172, 203, 63, 231, 92, 95, 204, 209, 244, 7, 64, 231, 92, 95, 204, 209, 244, 7, 64, 46, 59, 248, 148, 221, 39, 6, 64]))]
+#[schema(example = ElasticModulesForUnidirectionalCompositeResponseMessage::example_as_serde_big_array)]
 pub(crate) struct ElasticModulesForUnidirectionalCompositeResponseMessage {
     pub(crate) e1: f64,
     pub(crate) e2: f64,
@@ -29,6 +20,40 @@ pub(crate) struct ElasticModulesForUnidirectionalCompositeResponseMessage {
     pub(crate) g12: f64,
     pub(crate) g13: f64,
     pub(crate) g23: f64,
+}
+
+impl ElasticModulesForUnidirectionalCompositeResponseMessage {
+    pub(crate) const SIZE: usize = core::mem::size_of::<Self>();
+
+    pub(crate) const fn content_type() -> &'static str {
+        "application/x.elastic-modules-for-unidirectional-composite-response-message"
+    }
+
+    pub(crate) const fn py_struct_format_string() -> &'static str {
+        "ddddddddd"
+    }
+
+    pub(crate) const fn example() -> Self {
+        Self {
+            e1: 40.01172332942556,
+            e2: 6.7364802254566305,
+            e3: 6.7364802254566305,
+            nu12: 0.03840958253366131,
+            nu13: 0.03840958253366131,
+            nu23: 0.21620579415556423,
+            g12: 2.9945407835581253,
+            g13: 2.9945407835581253,
+            g23: 2.769465602708258,
+        }
+    }
+
+    pub(crate) const fn example_as_array() -> [u8; Self::SIZE] {
+        unsafe { core::mem::transmute(Self::example()) }
+    }
+
+    pub(crate) fn example_as_serde_big_array() -> serde_big_array::Array<u8, { Self::SIZE }> {
+        serde_big_array::Array(Self::example_as_array())
+    }
 }
 
 pub(crate) struct ElasticModulesForUnidirectionalCompositeResponseParcel {
