@@ -59,3 +59,16 @@ decl_req_resp_message_pair!(
         }
     }
 );
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn see_args_message_size() {
+        println!(
+            "core::mem::size_of::<ElasticModulesForUnidirectionalCompositeArgsMessage>() = {}",
+            core::mem::size_of::<ElasticModulesForUnidirectionalCompositeArgsMessage>()
+        );
+    }
+}
