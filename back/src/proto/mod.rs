@@ -1,3 +1,16 @@
+mod elastic_modules_for_honeycomb;
+mod elastic_modules_for_unidirectional_composite;
+
+pub(crate) use elastic_modules_for_honeycomb::{
+    ElasticModulesForHoneycombArgsMessage, ElasticModulesForHoneycombResponseMessage,
+    ElasticModulesForHoneycombResponseParcel,
+};
+pub(crate) use elastic_modules_for_unidirectional_composite::{
+    ElasticModulesForUnidirectionalCompositeArgsMessage,
+    ElasticModulesForUnidirectionalCompositeResponseMessage,
+    ElasticModulesForUnidirectionalCompositeResponseParcel,
+};
+
 macro_rules! decl_req_message {
     (@swap_bytes ($self:ident.$field:ident : u8)) => {};
     (@swap_bytes ($self:ident.$field:ident : f64)) => {
@@ -13,7 +26,7 @@ macro_rules! decl_req_message {
             for _ in 0..padding {
                 $buf.push('x');
             }
-            let ch = decl_req_message!(@py_struct_format_string_char($ty));
+            let ch = crate::proto::decl_req_message!(@py_struct_format_string_char($ty));
             $buf.push(ch);
             // using += instead of the fully qualified syntax rendered the line an expression rather than a statement
             #[allow(unused_assignments)]
@@ -60,7 +73,7 @@ macro_rules! decl_req_message {
 
             pub(crate) fn reorder_bytes(&mut self) {
                 $(
-                    decl_req_message!(@swap_bytes(self.$field : $ty));
+                    crate::proto::decl_req_message!(@swap_bytes(self.$field : $ty));
                 )+
             }
 
@@ -72,7 +85,7 @@ macro_rules! decl_req_message {
                 buf.push('B');
                 cur_size += 1;
 
-                decl_req_message!(@to_py_struct_format_string_raw_loop(buf, cur_size, $($ty),+));
+                crate::proto::decl_req_message!(@to_py_struct_format_string_raw_loop(buf, cur_size, $($ty),+));
                 buf
             }
 
@@ -159,7 +172,7 @@ macro_rules! decl_resp_message {
             for _ in 0..padding {
                 $buf.push('x');
             }
-            let ch = decl_resp_message!(@py_struct_format_string_char($ty));
+            let ch = crate::proto::decl_resp_message!(@py_struct_format_string_char($ty));
             $buf.push(ch);
             // using += instead of the fully qualified syntax rendered the line an expression rather than a statement
             #[allow(unused_assignments)]
@@ -197,7 +210,7 @@ macro_rules! decl_resp_message {
                 let mut buf = String::new();
                 let mut cur_size = 0;
 
-                decl_resp_message!(@to_py_struct_format_string_raw_loop(buf, cur_size, $($ty),+));
+                crate::proto::decl_resp_message!(@to_py_struct_format_string_raw_loop(buf, cur_size, $($ty),+));
                 buf
             }
 
@@ -234,7 +247,7 @@ macro_rules! decl_resp_message {
 
             fn size(&self) -> actix_web::body::BodySize {
                 actix_web::body::BodySize::Sized(core::mem::size_of::<
-                    ElasticModulesForUnidirectionalCompositeResponseMessage,
+                    $name,
                 >() as u64)
             }
 
@@ -294,18 +307,14 @@ macro_rules! decl_req_resp_message_pair {
         }
 
         impl $req_name_dup:ident {
-            pub(crate) const fn example() -> Self {
-                $req_example:expr
-            }
+            pub(crate) const fn example() -> Self $req_example_block:block
         }
 
         impl $resp_name_dup:ident {
-            pub(crate) const fn example() -> Self {
-                $resp_example:expr
-            }
+            pub(crate) const fn example() -> Self $resp_example_block:block
         }
     ) => {
-        decl_req_message!(
+        crate::proto::decl_req_message!(
             #[content_type = $req_content_type]
             message $req_name {
                 $(
@@ -315,7 +324,7 @@ macro_rules! decl_req_resp_message_pair {
             }
         );
 
-        decl_resp_message!(
+        crate::proto::decl_resp_message!(
             #[content_type = $resp_content_type]
             #[parcel = $resp_parcel]
             message $resp_name {
@@ -327,15 +336,11 @@ macro_rules! decl_req_resp_message_pair {
         );
 
         impl $req_name_dup {
-            pub(crate) const fn example() -> Self {
-                $req_example
-            }
+            pub(crate) const fn example() -> Self $req_example_block
         }
 
         impl $resp_name_dup {
-            pub(crate) const fn example() -> Self {
-                $resp_example
-            }
+            pub(crate) const fn example() -> Self $resp_example_block
         }
 
         #[cfg(test)]
@@ -367,225 +372,6 @@ macro_rules! decl_req_resp_message_pair {
     };
 }
 
-use std::f64::consts::PI;
-
-decl_req_resp_message_pair!(
-    test example_data_is_consistent_for_elastic_modules_for_unidirectional_composite;
-    fn mat_props::elastic_modules_for_unidirectional_composite;
-
-    #[content_type = "application/x.elastic-modules-for-unidirectional-composite-args-message"]
-    message(req) ElasticModulesForUnidirectionalCompositeArgsMessage {
-        #[schema(minimum = 1, maximum = 2)]
-        pub(crate) number_of_model: u8,
-        pub(crate) fibre_content: f64,
-        pub(crate) e_for_fiber: f64,
-        pub(crate) nu_for_fiber: f64,
-        pub(crate) e_for_matrix: f64,
-        pub(crate) nu_for_matrix: f64
-    }
-
-    #[content_type = "application/x.elastic-modules-for-unidirectional-composite-response-message"]
-    #[parcel =  ElasticModulesForUnidirectionalCompositeResponseParcel]
-    message(resp) ElasticModulesForUnidirectionalCompositeResponseMessage {
-        pub(crate) e1: f64,
-        pub(crate) e2: f64,
-        pub(crate) e3: f64,
-        pub(crate) nu12: f64,
-        pub(crate) nu13: f64,
-        pub(crate) nu23: f64,
-        pub(crate) g12: f64,
-        pub(crate) g13: f64,
-        pub(crate) g23: f64
-    }
-
-    impl ElasticModulesForUnidirectionalCompositeArgsMessage {
-        pub(crate) const fn example() -> Self {
-            Self {
-                endianness: 0,
-                number_of_model: 2,
-                fibre_content: 0.2,
-                e_for_fiber: 100.0,
-                nu_for_fiber: 0.3,
-                e_for_matrix: 5.0,
-                nu_for_matrix: 0.2,
-            }
-        }
-    }
-
-    impl ElasticModulesForUnidirectionalCompositeResponseMessage {
-        pub(crate) const fn example() -> Self {
-            Self {
-                e1: 24.011723329425557,
-                e2: 6.5683701067350135,
-                e3: 6.5683701067350135,
-                nu12: 0.06240625050144681,
-                nu13: 0.06240625050144681,
-                nu23: 0.18585515203940609,
-                g12: 2.9945407835581253,
-                g13: 2.9945407835581253,
-                g23: 2.769465602708258,
-            }
-        }
-    }
-);
-
-decl_req_message!(
-    #[content_type = "application/x.elastic-modules-for-honeycomb-args-message"]
-    message ElasticModulesForHoneycombArgsMessage {
-        #[schema(minimum = 1, maximum = 1)]
-        pub(crate) number_of_model: u8,
-        pub(crate) l_cell_side_size: f64,
-        pub(crate) h_cell_side_size: f64,
-        pub(crate) wall_thickness: f64,
-        pub(crate) angle: f64,
-        pub(crate) e_for_honeycomb: f64,
-        pub(crate) nu_for_honeycomb: f64
-    }
-);
-
-decl_resp_message!(
-    #[content_type = "application/x.elastic-modules-for-honeycomb-response-message"]
-    #[parcel =  ElasticModulesForHoneycombResponseParcel]
-    message ElasticModulesForHoneycombResponseMessage {
-        pub(crate) e1: f64,
-        pub(crate) e2: f64,
-        pub(crate) e3: f64,
-        pub(crate) nu12: f64,
-        pub(crate) nu13: f64,
-        pub(crate) nu23: f64,
-        pub(crate) g12: f64,
-        pub(crate) g13: f64,
-        pub(crate) g23: f64
-    }
-);
-
-impl ElasticModulesForHoneycombArgsMessage {
-    pub(crate) const fn example() -> Self {
-        const ANGLE: f64 = PI / 6.0;
-        Self {
-            endianness: 0,
-            number_of_model: 1,
-            l_cell_side_size: 9.24,
-            h_cell_side_size: 8.4619,
-            wall_thickness: 0.4,
-            angle: ANGLE,
-            e_for_honeycomb: 7.07,
-            nu_for_honeycomb: 0.2,
-        }
-    }
-}
-
-impl ElasticModulesForHoneycombResponseMessage {
-    pub(crate) const fn example() -> Self {
-        Self {
-            e1: 0.0014972693834675922,
-            e2: 0.0013344741623586129,
-            e3: 0.3592394105863781,
-            nu12: 1.0512175946777975,
-            nu13: 0.0008335774635770805,
-            nu23: 0.0007429441887683659,
-            g12: 0.000288216866909449,
-            g13: 0.07995563727728495,
-            g23: 0.0755763830773748,
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn see_elastic_modules_for_unidirectional_composite_args_message_example_as_bytes() {
-        println!(
-            "{:?}",
-            ElasticModulesForUnidirectionalCompositeArgsMessage::example_as_bytes()
-        );
-    }
-
-    #[test]
-    fn example_data_is_consistent_for_elastic_modules_for_unidirectional_composite() {
-        let ElasticModulesForUnidirectionalCompositeArgsMessage {
-            endianness: _,
-            number_of_model,
-            fibre_content,
-            e_for_fiber,
-            nu_for_fiber,
-            e_for_matrix,
-            nu_for_matrix,
-        } = ElasticModulesForUnidirectionalCompositeArgsMessage::example();
-        let res = mat_props::elastic_modules_for_unidirectional_composite(
-            number_of_model,
-            fibre_content,
-            e_for_fiber,
-            nu_for_fiber,
-            e_for_matrix,
-            nu_for_matrix,
-        );
-        let Ok(res) = res else { panic!() };
-        let ElasticModulesForUnidirectionalCompositeResponseMessage {
-            e1,
-            e2,
-            e3,
-            nu12,
-            nu13,
-            nu23,
-            g12,
-            g13,
-            g23,
-        } = ElasticModulesForUnidirectionalCompositeResponseMessage::example();
-        assert_eq!(res[0], e1);
-        assert_eq!(res[1], e2);
-        assert_eq!(res[2], e3);
-        assert_eq!(res[3], nu12);
-        assert_eq!(res[4], nu13);
-        assert_eq!(res[5], nu23);
-        assert_eq!(res[6], g12);
-        assert_eq!(res[7], g13);
-        assert_eq!(res[8], g23);
-    }
-
-    #[test]
-    fn example_data_is_consistent_for_elastic_modules_for_honeycomb() {
-        let ElasticModulesForHoneycombArgsMessage {
-            endianness: _,
-            number_of_model,
-            l_cell_side_size,
-            h_cell_side_size,
-            wall_thickness,
-            angle,
-            e_for_honeycomb,
-            nu_for_honeycomb,
-        } = ElasticModulesForHoneycombArgsMessage::example();
-        let res = mat_props::elastic_modules_for_honeycomb(
-            number_of_model,
-            l_cell_side_size,
-            h_cell_side_size,
-            wall_thickness,
-            angle,
-            e_for_honeycomb,
-            nu_for_honeycomb,
-        );
-        let Ok(res) = res else { panic!() };
-        let ElasticModulesForHoneycombResponseMessage {
-            e1,
-            e2,
-            e3,
-            nu12,
-            nu13,
-            nu23,
-            g12,
-            g13,
-            g23,
-        } = ElasticModulesForHoneycombResponseMessage::example();
-        assert_eq!(res[0], e1);
-        assert_eq!(res[1], e2);
-        assert_eq!(res[2], e3);
-        assert_eq!(res[3], nu12);
-        assert_eq!(res[4], nu13);
-        assert_eq!(res[5], nu23);
-        assert_eq!(res[6], g12);
-        assert_eq!(res[7], g13);
-        assert_eq!(res[8], g23);
-    }
-}
+pub(crate) use decl_req_message;
+pub(crate) use decl_req_resp_message_pair;
+pub(crate) use decl_resp_message;

@@ -71,3 +71,17 @@ pub fn thermal_conductivity_for_unidirectional_composite(
     })
     .map_err(Error::NumericalError)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test() {
+        let [k1, k2, k3] =
+            thermal_conductivity_for_unidirectional_composite(2, 0.2, 100.0, 1.0).unwrap();
+        assert_eq!(k1, 20.8);
+        assert_eq!(k2, 1.3300670235932428);
+        assert_eq!(k3, 1.3300670235932428);
+    }
+}
