@@ -16,7 +16,7 @@ utoipa-swagger-ui = { path = "../../utoipa/utoipa-swagger-ui", features = [
 ] }
 mat-props = { path = "../mat-props" }
 futures-util = "0.3"
-heapless = { git = "https://github.com/JohnScience/heapless", rev = "6421b46" }
+heapless = { git = "https://github.com/JohnScience/heapless", rev = "4f2da52" }
 bytemuck = { version = "1.14.0", features = ["derive"] }
 serde_json = "1.0.108"
 serde-big-array = "0.5.1"

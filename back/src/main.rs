@@ -2,23 +2,33 @@ use actix_web::{get, post, App, HttpServer, Responder};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
-mod elastic_modules_for_unidirectional_composite_extra;
 mod endianness;
 mod proto;
 
-pub(crate) use elastic_modules_for_unidirectional_composite_extra::{
+use endianness::Endianness;
+pub(crate) use proto::{
     ElasticModulesForUnidirectionalCompositeArgsMessage,
     ElasticModulesForUnidirectionalCompositeResponseMessage,
     ElasticModulesForUnidirectionalCompositeResponseParcel,
 };
-use endianness::Endianness;
+
+use crate::proto::{
+    ElasticModulesForHoneycombArgsMessage, ElasticModulesForHoneycombResponseMessage,
+    ElasticModulesForHoneycombResponseParcel,
+};
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(index, elastic_modules_for_unidirectional_composite),
+    paths(
+        index,
+        elastic_modules_for_unidirectional_composite,
+        elastic_modules_for_honeycomb
+    ),
     components(schemas(
         ElasticModulesForUnidirectionalCompositeArgsMessage,
-        elastic_modules_for_unidirectional_composite_extra::ElasticModulesForUnidirectionalCompositeResponseMessage,
+        ElasticModulesForUnidirectionalCompositeResponseMessage,
+        ElasticModulesForHoneycombArgsMessage,
+        ElasticModulesForHoneycombResponseMessage,
     ))
 )]
 struct ApiDoc;
@@ -103,6 +113,76 @@ async fn elastic_modules_for_unidirectional_composite(
     actix_web::HttpResponse::Ok().body(parcel)
 }
 
+#[utoipa::path(
+    post,
+    request_body(
+        content = ElasticModulesForHoneycombArgsMessage,
+        description = format!(
+            "Python struct format string: {:?}. See <https://docs.python.org/3/library/struct.html#format-strings>.\n\n\
+            See schema for the order of the fields (but not their sizes).",
+            ElasticModulesForHoneycombArgsMessage::py_struct_format_string()
+        ),
+        content_type = ElasticModulesForHoneycombArgsMessage::content_type(),
+        example = ElasticModulesForHoneycombArgsMessage::example_as_serde_big_array,
+    ),
+    responses (
+        (
+            status = 200,
+            description = format!(
+                "Computes elastic_modules_for_honeycomb. \
+                Returns the binary representation of [E1, E2, E3, nu12, nu13, nu23, G12, G13, G23] with the requested endianness.\n\n\
+                Python struct format string: {:?}. See <https://docs.python.org/3/library/struct.html#format-strings>.",
+                ElasticModulesForHoneycombResponseMessage::py_struct_format_string()
+            ),
+            body = ElasticModulesForHoneycombResponseMessage,
+            content_type = ElasticModulesForHoneycombResponseMessage::content_type(),
+        ),
+    )
+)]
+#[post("/compute/elastic_modules_for_honeycomb")]
+async fn elastic_modules_for_honeycomb(
+    args: ElasticModulesForHoneycombArgsMessage,
+) -> impl Responder {
+    let ElasticModulesForHoneycombArgsMessage {
+        endianness,
+        number_of_model,
+        l_cell_side_size,
+        h_cell_side_size,
+        wall_thickness,
+        angle,
+        e_for_honeycomb,
+        nu_for_honeycomb,
+    } = args;
+    // the extractor validated the endianness, so it's safe to use `from_u8_unchecked`
+    let endianness = unsafe { Endianness::from_u8_unchecked(endianness) };
+    let res: [f64; 9] = match mat_props::elastic_modules_for_honeycomb(
+        number_of_model,
+        l_cell_side_size,
+        h_cell_side_size,
+        wall_thickness,
+        angle,
+        e_for_honeycomb,
+        nu_for_honeycomb,
+    ) {
+        Ok(r) => r,
+        Err(_e) => return actix_web::HttpResponse::InternalServerError().finish(),
+    };
+    let [e1, e2, e3, nu12, nu13, nu23, g12, g13, g23] = res;
+    let message = ElasticModulesForHoneycombResponseMessage {
+        e1,
+        e2,
+        e3,
+        nu12,
+        nu13,
+        nu23,
+        g12,
+        g13,
+        g23,
+    };
+    let parcel = ElasticModulesForHoneycombResponseParcel::new(endianness, message);
+    actix_web::HttpResponse::Ok().body(parcel)
+}
+
 #[post("/openapi.json")]
 async fn serve_openapi_json() -> impl Responder {
     let json = ApiDoc::openapi().to_pretty_json().unwrap();
@@ -116,6 +196,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .service(index)
             .service(elastic_modules_for_unidirectional_composite)
+            .service(elastic_modules_for_honeycomb)
             .service(
                 SwaggerUi::new("/swagger-ui/{_:.*}")
                     .url("/api-docs/openapi.json", ApiDoc::openapi()),

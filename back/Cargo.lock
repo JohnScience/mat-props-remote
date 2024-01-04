@@ -618,7 +618,7 @@ checksum = "290f1a1d9242c78d09ce40a5e87e7554ee637af1351968159f4952f028f75604"
 [[package]]
 name = "heapless"
 version = "0.8.0"
-source = "git+https://github.com/JohnScience/heapless?rev=6421b46#6421b461cdd4177fea4b0140bc1f4354db7cfb17"
+source = "git+https://github.com/JohnScience/heapless?rev=4f2da52#4f2da52084c83cee3e0906524919cce2a7d81608"
 dependencies = [
  "hash32",
  "stable_deref_trait",

@@ -104,3 +104,25 @@ pub fn elastic_modules_for_honeycomb(
     })
     .map_err(Error::NumericalError)
 }
+
+#[cfg(test)]
+mod tests {
+    use std::f64::consts::PI;
+
+    #[test]
+    fn see_example_computation() {
+        let res = super::elastic_modules_for_honeycomb(1, 9.24, 8.4619, 0.4, PI / 6.0, 7.07, 0.2);
+        let Ok([e1, e2, e3, nu12, nu13, nu23, g12, g13, g23]) = res else {
+            panic!();
+        };
+        assert_eq!(e1, 0.0014972693834675922);
+        assert_eq!(e2, 0.0013344741623586129);
+        assert_eq!(e3, 0.3592394105863781);
+        assert_eq!(nu12, 1.0512175946777975);
+        assert_eq!(nu13, 0.0008335774635770805);
+        assert_eq!(nu23, 0.0007429441887683659);
+        assert_eq!(g12, 0.000288216866909449);
+        assert_eq!(g13, 0.07995563727728495);
+        assert_eq!(g23, 0.0755763830773748);
+    }
+}
