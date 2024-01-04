@@ -271,11 +271,110 @@ macro_rules! decl_resp_message {
     }
 }
 
+macro_rules! decl_req_resp_message_pair {
+    (
+        test $test_name:ident;
+        fn $fn_name:path;
+
+        #[content_type = $req_content_type:tt]
+        message(req) $req_name:ident {
+            $(
+                $(#[$req_attr:meta])*
+                $req_vis:vis $req_field:ident : $req_ty:ident
+            ),+
+        }
+
+        #[content_type = $resp_content_type:tt]
+        #[parcel = $resp_parcel:ident]
+        message(resp) $resp_name:ident {
+            $(
+                $(#[$resp_attr:meta])*
+                $resp_vis:vis $resp_field:ident : $resp_ty:ident
+            ),+
+        }
+
+        impl $req_name_dup:ident {
+            pub(crate) const fn example() -> Self {
+                $req_example:expr
+            }
+        }
+
+        impl $resp_name_dup:ident {
+            pub(crate) const fn example() -> Self {
+                $resp_example:expr
+            }
+        }
+    ) => {
+        decl_req_message!(
+            #[content_type = $req_content_type]
+            message $req_name {
+                $(
+                    $(#[$req_attr])*
+                    $req_vis $req_field : $req_ty
+                ),+
+            }
+        );
+
+        decl_resp_message!(
+            #[content_type = $resp_content_type]
+            #[parcel = $resp_parcel]
+            message $resp_name {
+                $(
+                    $(#[$resp_attr])*
+                    $resp_vis $resp_field : $resp_ty
+                ),+
+            }
+        );
+
+        impl $req_name_dup {
+            pub(crate) const fn example() -> Self {
+                $req_example
+            }
+        }
+
+        impl $resp_name_dup {
+            pub(crate) const fn example() -> Self {
+                $resp_example
+            }
+        }
+
+        #[cfg(test)]
+        #[test]
+        fn $test_name() {
+            let $req_name {
+                endianness: _,
+                $(
+                    $req_field
+                ),+
+            } = $req_name::example();
+            let res = $fn_name(
+                $(
+                    $req_field
+                ),+
+            ).unwrap();
+            let $resp_name {
+                $(
+                    $resp_field
+                ),+
+            } = $resp_name::example();
+            let mut i = 0;
+            $(
+                assert_eq!(res[i], $resp_field);
+                #[allow(unused_assignments)]
+                <usize as core::ops::AddAssign>::add_assign(&mut i, 1);
+            )+
+        }
+    };
+}
+
 use std::f64::consts::PI;
 
-decl_req_message!(
+decl_req_resp_message_pair!(
+    test example_data_is_consistent_for_elastic_modules_for_unidirectional_composite;
+    fn mat_props::elastic_modules_for_unidirectional_composite;
+
     #[content_type = "application/x.elastic-modules-for-unidirectional-composite-args-message"]
-    message ElasticModulesForUnidirectionalCompositeArgsMessage {
+    message(req) ElasticModulesForUnidirectionalCompositeArgsMessage {
         #[schema(minimum = 1, maximum = 2)]
         pub(crate) number_of_model: u8,
         pub(crate) fibre_content: f64,
@@ -284,12 +383,10 @@ decl_req_message!(
         pub(crate) e_for_matrix: f64,
         pub(crate) nu_for_matrix: f64
     }
-);
 
-decl_resp_message!(
     #[content_type = "application/x.elastic-modules-for-unidirectional-composite-response-message"]
     #[parcel =  ElasticModulesForUnidirectionalCompositeResponseParcel]
-    message ElasticModulesForUnidirectionalCompositeResponseMessage {
+    message(resp) ElasticModulesForUnidirectionalCompositeResponseMessage {
         pub(crate) e1: f64,
         pub(crate) e2: f64,
         pub(crate) e3: f64,
@@ -299,6 +396,36 @@ decl_resp_message!(
         pub(crate) g12: f64,
         pub(crate) g13: f64,
         pub(crate) g23: f64
+    }
+
+    impl ElasticModulesForUnidirectionalCompositeArgsMessage {
+        pub(crate) const fn example() -> Self {
+            Self {
+                endianness: 0,
+                number_of_model: 2,
+                fibre_content: 0.2,
+                e_for_fiber: 100.0,
+                nu_for_fiber: 0.3,
+                e_for_matrix: 5.0,
+                nu_for_matrix: 0.2,
+            }
+        }
+    }
+
+    impl ElasticModulesForUnidirectionalCompositeResponseMessage {
+        pub(crate) const fn example() -> Self {
+            Self {
+                e1: 24.011723329425557,
+                e2: 6.5683701067350135,
+                e3: 6.5683701067350135,
+                nu12: 0.06240625050144681,
+                nu13: 0.06240625050144681,
+                nu23: 0.18585515203940609,
+                g12: 2.9945407835581253,
+                g13: 2.9945407835581253,
+                g23: 2.769465602708258,
+            }
+        }
     }
 );
 
@@ -331,36 +458,6 @@ decl_resp_message!(
         pub(crate) g23: f64
     }
 );
-
-impl ElasticModulesForUnidirectionalCompositeArgsMessage {
-    pub(crate) const fn example() -> Self {
-        Self {
-            endianness: 0,
-            number_of_model: 2,
-            fibre_content: 0.2,
-            e_for_fiber: 100.0,
-            nu_for_fiber: 0.3,
-            e_for_matrix: 5.0,
-            nu_for_matrix: 0.2,
-        }
-    }
-}
-
-impl ElasticModulesForUnidirectionalCompositeResponseMessage {
-    pub(crate) const fn example() -> Self {
-        Self {
-            e1: 40.01172332942556,
-            e2: 6.7364802254566305,
-            e3: 6.7364802254566305,
-            nu12: 0.03840958253366131,
-            nu13: 0.03840958253366131,
-            nu23: 0.21620579415556423,
-            g12: 2.9945407835581253,
-            g13: 2.9945407835581253,
-            g23: 2.769465602708258,
-        }
-    }
-}
 
 impl ElasticModulesForHoneycombArgsMessage {
     pub(crate) const fn example() -> Self {
