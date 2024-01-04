@@ -1,6 +1,7 @@
 mod elastic_modules_for_honeycomb;
 mod elastic_modules_for_unidirectional_composite;
 mod thermal_conductivity_for_unidirectional_composite;
+mod thermal_expansion_for_unidirectional_composite;
 
 pub(crate) use elastic_modules_for_honeycomb::{
     ElasticModulesForHoneycombArgsMessage, ElasticModulesForHoneycombResponseMessage,
@@ -15,6 +16,11 @@ pub(crate) use thermal_conductivity_for_unidirectional_composite::{
     ThermalConductivityForUnidirectionalCompositeArgsMessage,
     ThermalConductivityForUnidirectionalCompositeResponseMessage,
     ThermalConductivityForUnidirectionalCompositeResponseParcel,
+};
+pub(crate) use thermal_expansion_for_unidirectional_composite::{
+    ThermalExpansionForUnidirectionalCompositeArgsMessage,
+    ThermalExpansionForUnidirectionalCompositeResponseMessage,
+    ThermalExpansionForUnidirectionalCompositeResponseParcel,
 };
 
 macro_rules! decl_req_message {
@@ -300,7 +306,7 @@ macro_rules! decl_req_resp_message_pair {
             $(
                 $(#[$req_attr:meta])*
                 $req_vis:vis $req_field:ident : $req_ty:ident
-            ),+
+            ),+ $(,)?
         }
 
         #[content_type = $resp_content_type:tt]
@@ -309,7 +315,7 @@ macro_rules! decl_req_resp_message_pair {
             $(
                 $(#[$resp_attr:meta])*
                 $resp_vis:vis $resp_field:ident : $resp_ty:ident
-            ),+
+            ),+ $(,)?
         }
 
         impl $req_name_dup:ident {

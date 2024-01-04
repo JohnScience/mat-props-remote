@@ -30,3 +30,24 @@ pub fn thermal_expansion_for_honeycomb(
     })
     .map_err(Error::NumericalError)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test() {
+        let [alpha1, alpha2, alpha3] = thermal_expansion_for_honeycomb(
+            1,
+            9.24,
+            8.4619,
+            0.4,
+            std::f64::consts::PI / 6.0,
+            20e-5,
+        )
+        .unwrap();
+        assert_eq!(alpha1, 0.0002);
+        assert_eq!(alpha2, 0.00019999999999999966);
+        assert_eq!(alpha3, 0.0002);
+    }
+}

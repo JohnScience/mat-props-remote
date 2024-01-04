@@ -13,7 +13,7 @@ decl_req_resp_message_pair!(
         pub(crate) wall_thickness: f64,
         pub(crate) angle: f64,
         pub(crate) e_for_honeycomb: f64,
-        pub(crate) nu_for_honeycomb: f64
+        pub(crate) nu_for_honeycomb: f64,
     }
 
     #[content_type = "application/x.elastic-modules-for-honeycomb-response-message"]
@@ -27,7 +27,7 @@ decl_req_resp_message_pair!(
         pub(crate) nu23: f64,
         pub(crate) g12: f64,
         pub(crate) g13: f64,
-        pub(crate) g23: f64
+        pub(crate) g23: f64,
     }
 
     impl ElasticModulesForHoneycombArgsMessage {

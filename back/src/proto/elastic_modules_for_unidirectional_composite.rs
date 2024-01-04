@@ -12,7 +12,7 @@ decl_req_resp_message_pair!(
         pub(crate) e_for_fiber: f64,
         pub(crate) nu_for_fiber: f64,
         pub(crate) e_for_matrix: f64,
-        pub(crate) nu_for_matrix: f64
+        pub(crate) nu_for_matrix: f64,
     }
 
     #[content_type = "application/x.elastic-modules-for-unidirectional-composite-response-message"]
@@ -26,7 +26,7 @@ decl_req_resp_message_pair!(
         pub(crate) nu23: f64,
         pub(crate) g12: f64,
         pub(crate) g13: f64,
-        pub(crate) g23: f64
+        pub(crate) g23: f64,
     }
 
     impl ElasticModulesForUnidirectionalCompositeArgsMessage {

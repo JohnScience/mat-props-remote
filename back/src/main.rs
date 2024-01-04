@@ -13,6 +13,9 @@ use proto::{
     ThermalConductivityForUnidirectionalCompositeArgsMessage,
     ThermalConductivityForUnidirectionalCompositeResponseMessage,
     ThermalConductivityForUnidirectionalCompositeResponseParcel,
+    ThermalExpansionForUnidirectionalCompositeArgsMessage,
+    ThermalExpansionForUnidirectionalCompositeResponseMessage,
+    ThermalExpansionForUnidirectionalCompositeResponseParcel,
 };
 
 #[derive(OpenApi)]
@@ -22,6 +25,7 @@ use proto::{
         elastic_modules_for_unidirectional_composite,
         elastic_modules_for_honeycomb,
         thermal_conductivity_for_unidirectional_composite,
+        thermal_expansion_for_unidirectional_composite,
     ),
     components(schemas(
         ElasticModulesForUnidirectionalCompositeArgsMessage,
@@ -30,6 +34,8 @@ use proto::{
         ElasticModulesForHoneycombResponseMessage,
         ThermalConductivityForUnidirectionalCompositeArgsMessage,
         ThermalConductivityForUnidirectionalCompositeResponseMessage,
+        ThermalExpansionForUnidirectionalCompositeArgsMessage,
+        ThermalExpansionForUnidirectionalCompositeResponseMessage,
     ))
 )]
 struct ApiDoc;
@@ -201,7 +207,7 @@ async fn elastic_modules_for_honeycomb(
             status = 200,
             description = format!(
                 "Computes thermal_conductivity_for_unidirectional_composite. \
-                Returns the binary representation of [E1, E2, E3, nu12, nu13, nu23, G12, G13, G23] with the requested endianness.\n\n\
+                Returns the binary representation of [K1,K2,K3] with the requested endianness.\n\n\
                 Python struct format string: {:?}. See <https://docs.python.org/3/library/struct.html#format-strings>.",
                 ThermalConductivityForUnidirectionalCompositeResponseMessage::py_struct_format_string()
             ),
@@ -239,6 +245,72 @@ async fn thermal_conductivity_for_unidirectional_composite(
     actix_web::HttpResponse::Ok().body(parcel)
 }
 
+#[utoipa::path(
+    post,
+    request_body(
+        content = ThermalExpansionForUnidirectionalCompositeArgsMessage,
+        description = format!(
+            "Python struct format string: {:?}. See <https://docs.python.org/3/library/struct.html#format-strings>.\n\n\
+            See schema for the order of the fields (but not their sizes).",
+            ThermalExpansionForUnidirectionalCompositeArgsMessage::py_struct_format_string()
+        ),
+        content_type = ThermalExpansionForUnidirectionalCompositeArgsMessage::content_type(),
+        example = ThermalExpansionForUnidirectionalCompositeArgsMessage::example_as_serde_big_array,
+    ),
+    responses (
+        (
+            status = 200,
+            description = format!(
+                "Computes thermal_expansion_for_unidirectional_composite. \
+                Returns the binary representation of [alpha1,alpha2,alpha3] with the requested endianness.\n\n\
+                Python struct format string: {:?}. See <https://docs.python.org/3/library/struct.html#format-strings>.",
+                ThermalExpansionForUnidirectionalCompositeResponseMessage::py_struct_format_string()
+            ),
+            body = ThermalExpansionForUnidirectionalCompositeResponseMessage,
+            content_type = ThermalExpansionForUnidirectionalCompositeResponseMessage::content_type(),
+        ),
+    )
+)]
+#[post("/compute/thermal_expansion_for_unidirectional_composite")]
+async fn thermal_expansion_for_unidirectional_composite(
+    args: ThermalExpansionForUnidirectionalCompositeArgsMessage,
+) -> impl Responder {
+    let ThermalExpansionForUnidirectionalCompositeArgsMessage {
+        endianness,
+        number_of_model,
+        fibre_content,
+        e_for_fiber,
+        nu_for_fiber,
+        alpha_for_fiber,
+        e_for_matrix,
+        nu_for_matrix,
+        alpha_for_matrix,
+    } = args;
+    // the extractor validated the endianness, so it's safe to use `from_u8_unchecked`
+    let endianness = unsafe { Endianness::from_u8_unchecked(endianness) };
+    let res: [f64; 3] = match mat_props::thermal_expansion_for_unidirectional_composite(
+        number_of_model,
+        fibre_content,
+        e_for_fiber,
+        nu_for_fiber,
+        alpha_for_fiber,
+        e_for_matrix,
+        nu_for_matrix,
+        alpha_for_matrix,
+    ) {
+        Ok(r) => r,
+        Err(_e) => return actix_web::HttpResponse::InternalServerError().finish(),
+    };
+    let [alpha1, alpha2, alpha3] = res;
+    let message = ThermalExpansionForUnidirectionalCompositeResponseMessage {
+        alpha1,
+        alpha2,
+        alpha3,
+    };
+    let parcel = ThermalExpansionForUnidirectionalCompositeResponseParcel::new(endianness, message);
+    actix_web::HttpResponse::Ok().body(parcel)
+}
+
 #[post("/openapi.json")]
 async fn serve_openapi_json() -> impl Responder {
     let json = ApiDoc::openapi().to_pretty_json().unwrap();
@@ -254,6 +326,7 @@ async fn main() -> std::io::Result<()> {
             .service(elastic_modules_for_unidirectional_composite)
             .service(elastic_modules_for_honeycomb)
             .service(thermal_conductivity_for_unidirectional_composite)
+            .service(thermal_expansion_for_unidirectional_composite)
             .service(
                 SwaggerUi::new("/swagger-ui/{_:.*}")
                     .url("/api-docs/openapi.json", ApiDoc::openapi()),

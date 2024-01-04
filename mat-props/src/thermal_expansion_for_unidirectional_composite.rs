@@ -72,3 +72,19 @@ pub fn thermal_expansion_for_unidirectional_composite(
     })
     .map_err(Error::NumericalError)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test() {
+        let [alpha1, alpha2, alpha3] = thermal_expansion_for_unidirectional_composite(
+            1, 0.2, 100.0, 0.3, 1e-6, 5.0, 0.2, 20e-5,
+        )
+        .unwrap();
+        assert_eq!(alpha1, 0.00003303092919697953);
+        assert_eq!(alpha2, 0.0001653038466333737);
+        assert_eq!(alpha3, 0.0001653038466333737);
+    }
+}

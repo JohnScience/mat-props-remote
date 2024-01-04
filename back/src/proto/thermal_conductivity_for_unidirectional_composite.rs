@@ -10,7 +10,7 @@ decl_req_resp_message_pair!(
         pub(crate) number_of_model: u8,
         pub(crate) fibre_content: f64,
         pub(crate) k_for_fiber: f64,
-        pub(crate) k_for_matrix: f64
+        pub(crate) k_for_matrix: f64,
     }
 
     #[content_type = "application/x.thermal-conductivity-for-unidirectional-composite-response-message"]
@@ -18,7 +18,7 @@ decl_req_resp_message_pair!(
     message(resp) ThermalConductivityForUnidirectionalCompositeResponseMessage {
         pub(crate) k1: f64,
         pub(crate) k2: f64,
-        pub(crate) k3: f64
+        pub(crate) k3: f64,
     }
 
     impl ThermalConductivityForUnidirectionalCompositeArgsMessage {
