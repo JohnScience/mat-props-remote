@@ -40,7 +40,7 @@ pub fn elastic_modules_for_unidirectional_composite(
             Model::Vanin => {
                 let chi_for_fiber = 3.0 - 4.0 * nu_for_fiber;
                 let chi_for_matrix = 3.0 - 4.0 * nu_for_matrix;
-                let e1 = fibre_content * e_for_fiber * chi_for_fiber
+                let e1 = fibre_content * e_for_fiber
                     + (1.0 - fibre_content) * e_for_matrix
                     + (8.0
                         * g_for_matrix
@@ -158,4 +158,24 @@ pub fn elastic_modules_for_unidirectional_composite(
         }
     });
     res.map_err(Error::NumericalError)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test() {
+        let [e1, e2, e3, nu12, nu13, nu23, g12, g13, g23] =
+            elastic_modules_for_unidirectional_composite(2, 0.2, 100.0, 0.3, 5.0, 0.2).unwrap();
+        assert_eq!(e1, 24.011723329425557);
+        assert_eq!(e2, 6.5683701067350135);
+        assert_eq!(e3, 6.5683701067350135);
+        assert_eq!(nu12, 0.06240625050144681);
+        assert_eq!(nu13, 0.06240625050144681);
+        assert_eq!(nu23, 0.18585515203940609);
+        assert_eq!(g12, 2.9945407835581253);
+        assert_eq!(g13, 2.9945407835581253);
+        assert_eq!(g23, 2.769465602708258);
+    }
 }
