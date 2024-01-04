@@ -13,6 +13,8 @@ use proto::{
     ThermalConductivityForUnidirectionalCompositeArgsMessage,
     ThermalConductivityForUnidirectionalCompositeResponseMessage,
     ThermalConductivityForUnidirectionalCompositeResponseParcel,
+    ThermalExpansionForHoneycombArgsMessage, ThermalExpansionForHoneycombResponseMessage,
+    ThermalExpansionForHoneycombResponseParcel,
     ThermalExpansionForUnidirectionalCompositeArgsMessage,
     ThermalExpansionForUnidirectionalCompositeResponseMessage,
     ThermalExpansionForUnidirectionalCompositeResponseParcel,
@@ -26,6 +28,7 @@ use proto::{
         elastic_modules_for_honeycomb,
         thermal_conductivity_for_unidirectional_composite,
         thermal_expansion_for_unidirectional_composite,
+        thermal_expansion_for_honeycomb,
     ),
     components(schemas(
         ElasticModulesForUnidirectionalCompositeArgsMessage,
@@ -36,6 +39,8 @@ use proto::{
         ThermalConductivityForUnidirectionalCompositeResponseMessage,
         ThermalExpansionForUnidirectionalCompositeArgsMessage,
         ThermalExpansionForUnidirectionalCompositeResponseMessage,
+        ThermalExpansionForHoneycombArgsMessage,
+        ThermalExpansionForHoneycombResponseMessage,
     ))
 )]
 struct ApiDoc;
@@ -311,6 +316,68 @@ async fn thermal_expansion_for_unidirectional_composite(
     actix_web::HttpResponse::Ok().body(parcel)
 }
 
+#[utoipa::path(
+    post,
+    request_body(
+        content = ThermalExpansionForHoneycombArgsMessage,
+        description = format!(
+            "Python struct format string: {:?}. See <https://docs.python.org/3/library/struct.html#format-strings>.\n\n\
+            See schema for the order of the fields (but not their sizes).",
+            ThermalExpansionForHoneycombArgsMessage::py_struct_format_string()
+        ),
+        content_type = ThermalExpansionForHoneycombArgsMessage::content_type(),
+        example = ThermalExpansionForHoneycombArgsMessage::example_as_serde_big_array,
+    ),
+    responses (
+        (
+            status = 200,
+            description = format!(
+                "Computes thermal_expansion_for_honeycomb. \
+                Returns the binary representation of [alpha1,alpha2,alpha3] with the requested endianness.\n\n\
+                Python struct format string: {:?}. See <https://docs.python.org/3/library/struct.html#format-strings>.",
+                ThermalExpansionForHoneycombResponseMessage::py_struct_format_string()
+            ),
+            body = ThermalExpansionForHoneycombResponseMessage,
+            content_type = ThermalExpansionForHoneycombResponseMessage::content_type(),
+        ),
+    )
+)]
+#[post("/compute/thermal_expansion_for_honeycomb")]
+async fn thermal_expansion_for_honeycomb(
+    args: ThermalExpansionForHoneycombArgsMessage,
+) -> impl Responder {
+    let ThermalExpansionForHoneycombArgsMessage {
+        endianness,
+        number_of_model,
+        l_cell_side_size,
+        h_cell_side_size,
+        _wall_thickness,
+        angle,
+        alpha_for_honeycomb,
+    } = args;
+    // the extractor validated the endianness, so it's safe to use `from_u8_unchecked`
+    let endianness = unsafe { Endianness::from_u8_unchecked(endianness) };
+    let res: [f64; 3] = match mat_props::thermal_expansion_for_honeycomb(
+        number_of_model,
+        l_cell_side_size,
+        h_cell_side_size,
+        _wall_thickness,
+        angle,
+        alpha_for_honeycomb,
+    ) {
+        Ok(r) => r,
+        Err(_e) => return actix_web::HttpResponse::InternalServerError().finish(),
+    };
+    let [alpha1, alpha2, alpha3] = res;
+    let message = ThermalExpansionForHoneycombResponseMessage {
+        alpha1,
+        alpha2,
+        alpha3,
+    };
+    let parcel = ThermalExpansionForHoneycombResponseParcel::new(endianness, message);
+    actix_web::HttpResponse::Ok().body(parcel)
+}
+
 #[post("/openapi.json")]
 async fn serve_openapi_json() -> impl Responder {
     let json = ApiDoc::openapi().to_pretty_json().unwrap();
@@ -327,6 +394,7 @@ async fn main() -> std::io::Result<()> {
             .service(elastic_modules_for_honeycomb)
             .service(thermal_conductivity_for_unidirectional_composite)
             .service(thermal_expansion_for_unidirectional_composite)
+            .service(thermal_expansion_for_honeycomb)
             .service(
                 SwaggerUi::new("/swagger-ui/{_:.*}")
                     .url("/api-docs/openapi.json", ApiDoc::openapi()),
