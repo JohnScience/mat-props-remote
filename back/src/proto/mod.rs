@@ -1,5 +1,6 @@
 mod elastic_modules_for_honeycomb;
 mod elastic_modules_for_unidirectional_composite;
+mod thermal_conductivity_for_unidirectional_composite;
 
 pub(crate) use elastic_modules_for_honeycomb::{
     ElasticModulesForHoneycombArgsMessage, ElasticModulesForHoneycombResponseMessage,
@@ -9,6 +10,11 @@ pub(crate) use elastic_modules_for_unidirectional_composite::{
     ElasticModulesForUnidirectionalCompositeArgsMessage,
     ElasticModulesForUnidirectionalCompositeResponseMessage,
     ElasticModulesForUnidirectionalCompositeResponseParcel,
+};
+pub(crate) use thermal_conductivity_for_unidirectional_composite::{
+    ThermalConductivityForUnidirectionalCompositeArgsMessage,
+    ThermalConductivityForUnidirectionalCompositeResponseMessage,
+    ThermalConductivityForUnidirectionalCompositeResponseParcel,
 };
 
 macro_rules! decl_req_message {

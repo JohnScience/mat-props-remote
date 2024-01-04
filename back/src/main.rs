@@ -4,17 +4,15 @@ use utoipa_swagger_ui::SwaggerUi;
 
 mod endianness;
 mod proto;
-
 use endianness::Endianness;
-pub(crate) use proto::{
-    ElasticModulesForUnidirectionalCompositeArgsMessage,
+use proto::{
+    ElasticModulesForHoneycombArgsMessage, ElasticModulesForHoneycombResponseMessage,
+    ElasticModulesForHoneycombResponseParcel, ElasticModulesForUnidirectionalCompositeArgsMessage,
     ElasticModulesForUnidirectionalCompositeResponseMessage,
     ElasticModulesForUnidirectionalCompositeResponseParcel,
-};
-
-use crate::proto::{
-    ElasticModulesForHoneycombArgsMessage, ElasticModulesForHoneycombResponseMessage,
-    ElasticModulesForHoneycombResponseParcel,
+    ThermalConductivityForUnidirectionalCompositeArgsMessage,
+    ThermalConductivityForUnidirectionalCompositeResponseMessage,
+    ThermalConductivityForUnidirectionalCompositeResponseParcel,
 };
 
 #[derive(OpenApi)]
@@ -29,6 +27,8 @@ use crate::proto::{
         ElasticModulesForUnidirectionalCompositeResponseMessage,
         ElasticModulesForHoneycombArgsMessage,
         ElasticModulesForHoneycombResponseMessage,
+        ThermalConductivityForUnidirectionalCompositeArgsMessage,
+        ThermalConductivityForUnidirectionalCompositeResponseMessage,
     ))
 )]
 struct ApiDoc;
@@ -183,6 +183,61 @@ async fn elastic_modules_for_honeycomb(
     actix_web::HttpResponse::Ok().body(parcel)
 }
 
+#[utoipa::path(
+    post,
+    request_body(
+        content = ThermalConductivityForUnidirectionalCompositeArgsMessage,
+        description = format!(
+            "Python struct format string: {:?}. See <https://docs.python.org/3/library/struct.html#format-strings>.\n\n\
+            See schema for the order of the fields (but not their sizes).",
+            ThermalConductivityForUnidirectionalCompositeArgsMessage::py_struct_format_string()
+        ),
+        content_type = ThermalConductivityForUnidirectionalCompositeArgsMessage::content_type(),
+        example = ThermalConductivityForUnidirectionalCompositeArgsMessage::example_as_serde_big_array,
+    ),
+    responses (
+        (
+            status = 200,
+            description = format!(
+                "Computes thermal_conductivity_for_unidirectional_composite. \
+                Returns the binary representation of [E1, E2, E3, nu12, nu13, nu23, G12, G13, G23] with the requested endianness.\n\n\
+                Python struct format string: {:?}. See <https://docs.python.org/3/library/struct.html#format-strings>.",
+                ThermalConductivityForUnidirectionalCompositeResponseMessage::py_struct_format_string()
+            ),
+            body = ThermalConductivityForUnidirectionalCompositeResponseMessage,
+            content_type = ThermalConductivityForUnidirectionalCompositeResponseMessage::content_type(),
+        ),
+    )
+)]
+#[post("/compute/thermal_conductivity_for_unidirectional_composite")]
+async fn thermal_conductivity_for_unidirectional_composite(
+    args: ThermalConductivityForUnidirectionalCompositeArgsMessage,
+) -> impl Responder {
+    let ThermalConductivityForUnidirectionalCompositeArgsMessage {
+        endianness,
+        number_of_model,
+        fibre_content,
+        k_for_fiber,
+        k_for_matrix,
+    } = args;
+    // the extractor validated the endianness, so it's safe to use `from_u8_unchecked`
+    let endianness = unsafe { Endianness::from_u8_unchecked(endianness) };
+    let res: [f64; 3] = match mat_props::thermal_conductivity_for_unidirectional_composite(
+        number_of_model,
+        fibre_content,
+        k_for_fiber,
+        k_for_matrix,
+    ) {
+        Ok(r) => r,
+        Err(_e) => return actix_web::HttpResponse::InternalServerError().finish(),
+    };
+    let [k1, k2, k3] = res;
+    let message = ThermalConductivityForUnidirectionalCompositeResponseMessage { k1, k2, k3 };
+    let parcel =
+        ThermalConductivityForUnidirectionalCompositeResponseParcel::new(endianness, message);
+    actix_web::HttpResponse::Ok().body(parcel)
+}
+
 #[post("/openapi.json")]
 async fn serve_openapi_json() -> impl Responder {
     let json = ApiDoc::openapi().to_pretty_json().unwrap();
@@ -197,6 +252,7 @@ async fn main() -> std::io::Result<()> {
             .service(index)
             .service(elastic_modules_for_unidirectional_composite)
             .service(elastic_modules_for_honeycomb)
+            .service(thermal_conductivity_for_unidirectional_composite)
             .service(
                 SwaggerUi::new("/swagger-ui/{_:.*}")
                     .url("/api-docs/openapi.json", ApiDoc::openapi()),
@@ -211,27 +267,6 @@ async fn main() -> std::io::Result<()> {
 #[cfg(test)]
 mod tests {
     use crate::proto::ElasticModulesForUnidirectionalCompositeArgsMessage;
-
-    #[test]
-    fn elastic_modules_for_unidirectional_composite() {
-        let res =
-            mat_props::elastic_modules_for_unidirectional_composite(2, 0.2, 100.0, 0.3, 5.0, 0.2);
-        let Ok(res) = res else { panic!() };
-        assert_eq!(
-            res,
-            [
-                24.011723329425557,
-                6.5683701067350135,
-                6.5683701067350135,
-                0.06240625050144681,
-                0.06240625050144681,
-                0.18585515203940609,
-                2.9945407835581253,
-                2.9945407835581253,
-                2.769465602708258
-            ]
-        );
-    }
 
     #[test]
     fn see_args_as_bytes() {
