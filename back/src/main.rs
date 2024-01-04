@@ -20,7 +20,8 @@ use proto::{
     paths(
         index,
         elastic_modules_for_unidirectional_composite,
-        elastic_modules_for_honeycomb
+        elastic_modules_for_honeycomb,
+        thermal_conductivity_for_unidirectional_composite,
     ),
     components(schemas(
         ElasticModulesForUnidirectionalCompositeArgsMessage,
