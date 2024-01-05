@@ -76,6 +76,23 @@ macro_rules! decl_req_message {
 
         impl $name {
             pub(crate) const SIZE: usize = std::mem::size_of::<Self>();
+            #[cfg(test)]
+            pub(crate) const FIELD_COUNT: usize = {
+                // 1 accounts for "endianness" field
+                let mut count = 1;
+                $(
+                    stringify!($field);
+                    count += 1;
+                )+
+                count
+            };
+            #[cfg(test)]
+            pub(crate) const FIELDS: [&'static str; Self::FIELD_COUNT] = [
+                "endianness",
+                $(
+                    stringify!($field),
+                )+
+            ];
 
             #[inline]
             pub(crate) const fn into_bytes(self) -> [u8; Self::SIZE] {
@@ -118,6 +135,41 @@ macro_rules! decl_req_message {
             // https://stackoverflow.com/questions/48782047/how-do-i-use-serde-to-deserialize-arrays-greater-than-32-elements-such-as-u8
             pub(crate) const fn example_as_serde_big_array() -> serde_big_array::Array<u8, { Self::SIZE }> {
                 serde_big_array::Array(Self::example_as_bytes())
+            }
+
+            #[cfg(test)]
+            pub(crate) fn js_build_args_buffer() -> String {
+                use std::fmt::Write;
+                let mut s = String::new();
+                write!(&mut s, "const args_buffer = new ArrayBuffer({});\n", Self::SIZE).unwrap();
+                write!(&mut s, "const args = new DataView(args_buffer);\n").unwrap();
+                let py_struct_format_string = Self::py_struct_format_string();
+                let mut offset = 0;
+                let mut field_idx = 0;
+                for ch in py_struct_format_string.chars() {
+                    match ch {
+                        'B' => {
+                            write!(&mut s, "args.setUint8({}, {});\n", offset, Self::FIELDS[field_idx]).unwrap();
+                            offset += 1;
+                            field_idx += 1;
+                        },
+                        'x' => {
+                            write!(
+                                &mut s,
+                                "args.setUint8({}, 0); // padding\n",
+                                offset,
+                            ).unwrap();
+                            offset += 1;
+                        },
+                        'd' => {
+                            write!(&mut s, "args.setFloat64({}, {}, native_endianness);\n", offset, Self::FIELDS[field_idx]).unwrap();
+                            offset += 8;
+                            field_idx += 1;
+                        },
+                        _ => panic!("Unsupported character in py_struct_format_string: {}", ch),
+                    };
+                }
+                s
             }
         }
 
@@ -218,6 +270,21 @@ macro_rules! decl_resp_message {
 
         impl $name {
             pub(crate) const SIZE: usize = core::mem::size_of::<Self>();
+            #[cfg(test)]
+            pub(crate) const FIELD_COUNT: usize = {
+                let mut count = 0;
+                $(
+                    stringify!($field);
+                    count += 1;
+                )+
+                count
+            };
+            #[cfg(test)]
+            pub(crate) const FIELDS: [&'static str; Self::FIELD_COUNT] = [
+                $(
+                    stringify!($field),
+                )+
+            ];
 
             pub(crate) const fn content_type() -> &'static str {
                 $content_type
@@ -237,6 +304,32 @@ macro_rules! decl_resp_message {
 
             pub(crate) fn example_as_serde_big_array() -> serde_big_array::Array<u8, { Self::SIZE }> {
                 serde_big_array::Array(Self::example_as_array())
+            }
+
+            #[cfg(test)]
+            pub(crate) fn js_send_req() -> String {
+                use std::fmt::Write;
+
+                let mut s = String::new();
+                s.push_str("const req = new XMLHttpRequest();\n");
+                s.push_str("req.open('POST', url);\n");
+                s.push_str("req.responseType = 'arraybuffer';\n");
+                s.push_str("req.onload = (_event) => {\n");
+                s.push_str("\t//const status_code = req.status;\n");
+                s.push_str("\t//const console.log(`status_code = ${status_code}`);\n");
+                s.push_str("\tconst array_buffer = req.response;\n");
+                s.push_str("\tif (array_buffer) {\n");
+                // FIXME: assumes that all the returned fields are f64
+                s.push_str("\t\tconst resp_view = new Float64Array(array_buffer);\n");
+                for (i, field) in Self::FIELDS.iter().enumerate() {
+                    write!(
+                        &mut s,
+                        "\t\tconst {field} = resp_view[{i}];\n"
+                    ).unwrap();
+                }
+                s.push_str("\t};\n");
+                s.push_str("};\n");
+                s
             }
         }
 
@@ -392,3 +485,89 @@ macro_rules! decl_req_resp_message_pair {
 pub(crate) use decl_req_message;
 pub(crate) use decl_req_resp_message_pair;
 pub(crate) use decl_resp_message;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn see_js_build_args_buffer_for_elastic_modules_for_unidirectional_composite_args_message() {
+        println!(
+            "{}",
+            ElasticModulesForUnidirectionalCompositeArgsMessage::js_build_args_buffer()
+        );
+    }
+
+    #[test]
+    fn see_js_send_req_for_elastic_modules_for_unidirectional_composite_response_message() {
+        println!(
+            "{}",
+            ElasticModulesForUnidirectionalCompositeResponseMessage::js_send_req()
+        );
+    }
+
+    #[test]
+    fn see_js_build_args_buffer_for_elastic_modules_for_honeycomb_args_message() {
+        println!(
+            "{}",
+            ElasticModulesForHoneycombArgsMessage::js_build_args_buffer()
+        );
+    }
+
+    #[test]
+    fn see_js_send_req_for_elastic_modules_for_honeycomb_response_message() {
+        println!(
+            "{}",
+            ElasticModulesForHoneycombResponseMessage::js_send_req()
+        );
+    }
+
+    #[test]
+    fn see_js_build_args_buffer_for_thermal_expansion_for_unidirectional_composite_args_message() {
+        println!(
+            "{}",
+            ThermalExpansionForUnidirectionalCompositeArgsMessage::js_build_args_buffer()
+        );
+    }
+
+    #[test]
+    fn see_js_send_req_for_thermal_expansion_for_unidirectional_composite_response_message() {
+        println!(
+            "{}",
+            ThermalExpansionForUnidirectionalCompositeResponseMessage::js_send_req()
+        );
+    }
+
+    #[test]
+    fn see_js_build_args_buffer_for_thermal_expansion_for_honeycomb_args_message() {
+        println!(
+            "{}",
+            ThermalExpansionForHoneycombArgsMessage::js_build_args_buffer()
+        );
+    }
+
+    #[test]
+    fn see_js_send_req_for_thermal_expansion_for_honeycomb_args_message() {
+        println!(
+            "{}",
+            ThermalExpansionForHoneycombResponseMessage::js_send_req()
+        );
+    }
+
+    #[test]
+    fn see_js_build_args_buffer_for_thermal_conductivity_for_unidirectional_composite_args_message()
+    {
+        println!(
+            "{}",
+            ThermalConductivityForUnidirectionalCompositeArgsMessage::js_build_args_buffer()
+        );
+    }
+
+    #[test]
+    fn see_js_send_req_for_thermal_conductivity_for_unidirectional_composite_response_message() {
+        println!(
+            "{}",
+            ThermalConductivityForUnidirectionalCompositeResponseMessage::js_send_req()
+        );
+    }
+}

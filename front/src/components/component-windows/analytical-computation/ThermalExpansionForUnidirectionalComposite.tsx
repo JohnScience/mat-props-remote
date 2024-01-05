@@ -2,6 +2,7 @@ import React, { ChangeEvent } from "react";
 import { Benchmark } from "../Benchmark";
 import { BenchmarkedResultSlot, WindowWithTauri } from "../../../tauri";
 import { FixedArray } from "../../../util";
+import { thermalExpansionForUnidirectionalComposite } from "../../../remote-compute";
 
 export const ThermalExpansionForUnidirectionalComposite: React.FC = () => {
     // Модель Ванина
@@ -44,27 +45,56 @@ export const ThermalExpansionForUnidirectionalComposite: React.FC = () => {
         setAlphaForMatrix(parseFloat(event.target.value));
     }
 
-async function compute() {
-    if (!("__TAURI__" in window)) {
-        console.error("Tauri API is not available in browser");
-        return;
+    async function try_compute_remotely(): Promise<boolean> {
+        const baseUrl = "http://localhost:8080";
+        return thermalExpansionForUnidirectionalComposite(
+            baseUrl,
+            numberOfModel,
+            fiberContent,
+            eForFiber,
+            nuForFiber,
+            alphaForFiber,
+            eForMatrix,
+            nuForMatrix,
+            alphaForMatrix
+        ).then((response) => {
+            console.log(response);
+            setComputedValues([response, {secs: 0, nanos: 0}]);
+            return true;
+        }).catch((error) => {
+            console.error(error);
+            return false;
+        })
     }
 
-    const tauriWindow = window as WindowWithTauri;
-    
-    const response = await tauriWindow.__TAURI__.invoke("thermal_expansion_for_unidirectional_composite", {
-        numberOfModel: numberOfModel,
-        fiberContent: fiberContent,
-        eForFiber: eForFiber,
-        nuForFiber: nuForFiber,
-        alphaForFiber: alphaForFiber,
-        eForMatrix: eForMatrix,
-        nuForMatrix: nuForMatrix,
-        alphaForMatrix: alphaForMatrix,
-    });
-    console.log(response);
-    setComputedValues(response);
-}
+    async function try_compute_with_tauri(): Promise<boolean> {
+        if (!("__TAURI__" in window)) {
+            return false
+        }
+
+        const tauriWindow = window as WindowWithTauri;
+
+        const response = await tauriWindow.__TAURI__.invoke("thermal_expansion_for_unidirectional_composite", {
+            numberOfModel: numberOfModel,
+            fiberContent: fiberContent,
+            eForFiber: eForFiber,
+            nuForFiber: nuForFiber,
+            alphaForFiber: alphaForFiber,
+            eForMatrix: eForMatrix,
+            nuForMatrix: nuForMatrix,
+            alphaForMatrix: alphaForMatrix,
+        });
+        console.log(response);
+        setComputedValues(response);
+        return true;
+    }
+
+    async function compute() {
+        if (!(await try_compute_with_tauri() || await try_compute_remotely())) {
+            console.error("Failed to compute because Tauri API is not available in browser and remote computation failed");
+            return;
+        }
+    }
 
     return <>
         <form>

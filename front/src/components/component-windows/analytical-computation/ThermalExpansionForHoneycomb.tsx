@@ -2,6 +2,7 @@ import React, { ChangeEvent } from "react";
 import { Benchmark } from "../Benchmark";
 import { BenchmarkedResultSlot, WindowWithTauri } from "../../../tauri";
 import { FixedArray } from "../../../util";
+import { thermalExpansionForHoneycomb } from "../../../remote-compute";
 
 export const ThermalExpansionForHoneycomb: React.FC = () => {
     const numberOfModel = 1;
@@ -29,10 +30,29 @@ export const ThermalExpansionForHoneycomb: React.FC = () => {
         setAlphaForHoneycomb(parseFloat(event.target.value));
     }
 
-    async function compute() {
+    async function try_compute_remotely(): Promise<boolean> {
+        const baseUrl = "http://localhost:8080";
+        return thermalExpansionForHoneycomb(
+            baseUrl,
+            numberOfModel,
+            lCellSideSize,
+            hCellSideSize,
+            wallThickness,
+            angle,
+            alphaForHoneycomb
+        ).then((response) => {
+            console.log(response);
+            setComputedValues([response, {secs: 0, nanos: 0}]);
+            return true;
+        }).catch((error) => {
+            console.error(error);
+            return false;
+        })
+    }
+
+    async function try_compute_with_tauri(): Promise<boolean> {
         if (!("__TAURI__" in window)) {
-            console.error("Tauri API is not available in browser");
-            return;
+            return false
         }
 
         const tauriWindow = window as WindowWithTauri;
@@ -47,6 +67,14 @@ export const ThermalExpansionForHoneycomb: React.FC = () => {
         });
         console.log(response);
         setComputedValues(response);
+        return true;
+    }
+
+    async function compute() {
+        if (!(await try_compute_with_tauri() || await try_compute_remotely())) {
+            console.error("Failed to compute because Tauri API is not available in browser and remote computation failed");
+            return;
+        }
     }
 
     return <>

@@ -2,6 +2,7 @@ import React, { ChangeEvent } from "react";
 import { Benchmark } from "../Benchmark";
 import { BenchmarkedResultSlot, WindowWithTauri } from "../../../tauri"
 import { FixedArray } from "../../../util";
+import { elasticModulesForUnidirectionalComposite } from "../../../remote-compute";
 
 // TODO: add units (GPa, MPa, etc.)
 // TODO: offer suggested values for E and v
@@ -40,10 +41,9 @@ export const ElasticModulesForUnidirectionalComposite: React.FC = () => {
         setNuForMatrix(parseFloat(event.target.value));
     }
 
-    async function compute() {
+    async function try_compute_with_tauri(): Promise<boolean> {
         if (!("__TAURI__" in window)) {
-            console.error("Tauri API is not available in browser");
-            return;
+            return false
         }
 
         const tauriWindow = window as WindowWithTauri;
@@ -58,6 +58,34 @@ export const ElasticModulesForUnidirectionalComposite: React.FC = () => {
         });
         console.log(response);
         setComputedValues(response);
+        return true;
+    }
+
+    async function try_compute_remotely(): Promise<boolean> {
+        const baseUrl = "http://localhost:8080";
+        return elasticModulesForUnidirectionalComposite(
+            baseUrl,
+            numberOfModel,
+            fiberContent,
+            eForFiber,
+            nuForFiber,
+            eForMatrix,
+            nuForMatrix
+        ).then((response) => {
+            console.log(response);
+            setComputedValues([response, {secs: 0, nanos: 0}]);
+            return true;
+        }).catch((error) => {
+            console.error(error);
+            return false;
+        })
+    }
+
+    async function compute() {
+        if (!(await try_compute_with_tauri() || await try_compute_remotely())) {
+            console.error("Failed to compute because Tauri API is not available in browser and remote computation failed");
+            return;
+        }
     }
 
     return <>

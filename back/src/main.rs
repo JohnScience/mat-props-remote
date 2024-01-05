@@ -122,7 +122,9 @@ async fn elastic_modules_for_unidirectional_composite(
         g23,
     };
     let parcel = ElasticModulesForUnidirectionalCompositeResponseParcel::new(endianness, message);
-    actix_web::HttpResponse::Ok().body(parcel)
+    actix_web::HttpResponse::Ok()
+        .append_header(("Access-Control-Allow-Origin", "*"))
+        .body(parcel)
 }
 
 #[utoipa::path(
@@ -192,7 +194,9 @@ async fn elastic_modules_for_honeycomb(
         g23,
     };
     let parcel = ElasticModulesForHoneycombResponseParcel::new(endianness, message);
-    actix_web::HttpResponse::Ok().body(parcel)
+    actix_web::HttpResponse::Ok()
+        .append_header(("Access-Control-Allow-Origin", "*"))
+        .body(parcel)
 }
 
 #[utoipa::path(
@@ -247,7 +251,9 @@ async fn thermal_conductivity_for_unidirectional_composite(
     let message = ThermalConductivityForUnidirectionalCompositeResponseMessage { k1, k2, k3 };
     let parcel =
         ThermalConductivityForUnidirectionalCompositeResponseParcel::new(endianness, message);
-    actix_web::HttpResponse::Ok().body(parcel)
+    actix_web::HttpResponse::Ok()
+        .append_header(("Access-Control-Allow-Origin", "*"))
+        .body(parcel)
 }
 
 #[utoipa::path(
@@ -313,7 +319,9 @@ async fn thermal_expansion_for_unidirectional_composite(
         alpha3,
     };
     let parcel = ThermalExpansionForUnidirectionalCompositeResponseParcel::new(endianness, message);
-    actix_web::HttpResponse::Ok().body(parcel)
+    actix_web::HttpResponse::Ok()
+        .append_header(("Access-Control-Allow-Origin", "*"))
+        .body(parcel)
 }
 
 #[utoipa::path(
@@ -375,7 +383,9 @@ async fn thermal_expansion_for_honeycomb(
         alpha3,
     };
     let parcel = ThermalExpansionForHoneycombResponseParcel::new(endianness, message);
-    actix_web::HttpResponse::Ok().body(parcel)
+    actix_web::HttpResponse::Ok()
+        .append_header(("Access-Control-Allow-Origin", "*"))
+        .body(parcel)
 }
 
 #[post("/openapi.json")]
@@ -386,7 +396,14 @@ async fn serve_openapi_json() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    println!("Endianness: {}.", cfg!(target_endian));
+    println!(
+        "Endianness: {}.",
+        if cfg!(target_endian = "big") {
+            "big"
+        } else {
+            "little"
+        }
+    );
     HttpServer::new(|| {
         App::new()
             .service(index)
