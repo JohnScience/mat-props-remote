@@ -2,7 +2,8 @@ import React, { ChangeEvent } from "react";
 import { Benchmark } from "../Benchmark";
 import { BenchmarkedResultSlot, WindowWithTauri } from "../../../tauri"
 import { FixedArray } from "../../../util";
-import { elasticModulesForUnidirectionalComposite } from "../../../remote-compute";
+import { DEFAULT_BASE_URL, elasticModulesForUnidirectionalComposite } from "../../../remote-compute";
+import init, { download_results_for_elastic_modules_for_unidirectional_composite } from '../../../xlsx-writer/pkg/xlsx_writer'
 
 // TODO: add units (GPa, MPa, etc.)
 // TODO: offer suggested values for E and v
@@ -56,13 +57,12 @@ export const ElasticModulesForUnidirectionalComposite: React.FC = () => {
             eForMatrix: eForMatrix,
             nuForMatrix: nuForMatrix
         });
-        console.log(response);
         setComputedValues(response);
         return true;
     }
 
     async function try_compute_remotely(): Promise<boolean> {
-        const baseUrl = "http://localhost:8080";
+        const baseUrl = DEFAULT_BASE_URL;
         return elasticModulesForUnidirectionalComposite(
             baseUrl,
             numberOfModel,
@@ -86,6 +86,22 @@ export const ElasticModulesForUnidirectionalComposite: React.FC = () => {
             console.error("Failed to compute because Tauri API is not available in browser and remote computation failed");
             return;
         }
+    }
+
+    function exportToExcel() {
+        const array = new Float64Array(9);
+        array[0] = computedValues[0][0] as number;
+        array[1] = computedValues[0][1] as number;
+        array[2] = computedValues[0][2] as number;
+        array[3] = computedValues[0][3] as number;
+        array[4] = computedValues[0][4] as number;
+        array[5] = computedValues[0][5] as number;
+        array[6] = computedValues[0][6] as number;
+        array[7] = computedValues[0][7] as number;
+        array[8] = computedValues[0][8] as number;
+        init().then(() => {
+            download_results_for_elastic_modules_for_unidirectional_composite(array);
+        });
     }
 
     return <>
@@ -118,9 +134,10 @@ export const ElasticModulesForUnidirectionalComposite: React.FC = () => {
             </label>
             <br />
             <input type="button" value="Рассчитать" onClick={compute} />
-
             { computedValues[0].length == 9 &&
                 <>
+                    <input type="button" value="Эксортировать как .xlsx" onClick={exportToExcel} />
+
                     <h2>Значения:</h2>
                     <p>E1 = {computedValues[0][0].toFixed(10)}</p>
                     <p>E2 = {computedValues[0][1].toFixed(10)}</p>

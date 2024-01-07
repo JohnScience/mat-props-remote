@@ -2,7 +2,8 @@ import React from "react";
 import { Benchmark } from "../Benchmark";
 import { BenchmarkedResultSlot, WindowWithTauri } from "../../../tauri"
 import { FixedArray } from "../../../util";
-import { elasticModulesForHoneycomb } from "../../../remote-compute";
+import { DEFAULT_BASE_URL, elasticModulesForHoneycomb } from "../../../remote-compute";
+import init, { download_results_for_elastic_modules_for_honeycomb } from "../../../xlsx-writer/pkg/xlsx_writer";
 
 export const ElasticModulesForHoneycomb: React.FC = () => {
     const numberOfModel = 1;
@@ -39,7 +40,7 @@ export const ElasticModulesForHoneycomb: React.FC = () => {
     }
 
     async function try_compute_remotely(): Promise<boolean> {
-        const baseUrl = "http://localhost:8080";
+        const baseUrl = DEFAULT_BASE_URL;
         return elasticModulesForHoneycomb(
             baseUrl,
             numberOfModel,
@@ -87,6 +88,22 @@ export const ElasticModulesForHoneycomb: React.FC = () => {
         }
     }
 
+    function exportToExcel() {
+        const array = new Float64Array(9);
+        array[0] = computedValues[0][0] as number;
+        array[1] = computedValues[0][1] as number;
+        array[2] = computedValues[0][2] as number;
+        array[3] = computedValues[0][3] as number;
+        array[4] = computedValues[0][4] as number;
+        array[5] = computedValues[0][5] as number;
+        array[6] = computedValues[0][6] as number;
+        array[7] = computedValues[0][7] as number;
+        array[8] = computedValues[0][8] as number;
+        init().then(() => {
+            download_results_for_elastic_modules_for_honeycomb(array);
+        });
+    }
+
     return <>
         <form>
             <label>Размер ячейки в длину:
@@ -118,6 +135,8 @@ export const ElasticModulesForHoneycomb: React.FC = () => {
             { 
                 computedValues[0].length == 9 &&
                 <>
+                    <input type="button" value="Эксортировать как .xlsx" onClick={exportToExcel} />
+
                     <h2>Значения:</h2>
                     <p>E1 = {computedValues[0][0].toFixed(10)}</p>
                     <p>E2 = {computedValues[0][1].toFixed(10)}</p>

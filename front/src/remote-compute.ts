@@ -7,6 +7,8 @@ const endianness /*uint8*/ = (() => {
 })();
 const nativeEndianness /*boolean*/ = !endianness;
 
+export const DEFAULT_BASE_URL = "http://localhost:8080";
+
 export async function elasticModulesForUnidirectionalComposite(
     baseUrl: string,
     numberOfModel: number,

@@ -2,7 +2,8 @@ import React, { ChangeEvent } from "react";
 import { Benchmark } from "../Benchmark";
 import { BenchmarkedResultSlot, WindowWithTauri } from "../../../tauri";
 import { FixedArray } from "../../../util";
-import { thermalConductivityForUnidirectionalComposite } from "../../../remote-compute";
+import { DEFAULT_BASE_URL, thermalConductivityForUnidirectionalComposite } from "../../../remote-compute";
+import init, { download_results_for_thermal_conductivity_for_unidirectional_composite } from "../../../xlsx-writer/pkg/xlsx_writer";
 
 export const ThermalConductivityForUnidirectionalComposite: React.FC = () => {
     const [numberOfModel, setNumberOfModel] = React.useState(1);
@@ -46,7 +47,7 @@ export const ThermalConductivityForUnidirectionalComposite: React.FC = () => {
     }
 
     async function try_compute_remotely(): Promise<boolean> {
-        const baseUrl = "http://localhost:8080";
+        const baseUrl = DEFAULT_BASE_URL;
         return thermalConductivityForUnidirectionalComposite(
             baseUrl,
             numberOfModel,
@@ -68,6 +69,16 @@ export const ThermalConductivityForUnidirectionalComposite: React.FC = () => {
             console.error("Failed to compute because Tauri API is not available in browser and remote computation failed");
             return;
         }
+    }
+
+    function exportToExcel() {
+        const array = new Float64Array(9);
+        array[0] = computedValues[0][0] as number;
+        array[1] = computedValues[0][1] as number;
+        array[2] = computedValues[0][2] as number;
+        init().then(() => {
+            download_results_for_thermal_conductivity_for_unidirectional_composite(array);
+        });
     }
 
     return <>
@@ -95,6 +106,8 @@ export const ThermalConductivityForUnidirectionalComposite: React.FC = () => {
 
             { computedValues[0].length == 3 &&
                 <>
+                    <input type="button" value="Эксортировать как .xlsx" onClick={exportToExcel} />
+
                     <h2>Значения:</h2>
                     <p>K1 = {computedValues[0][0].toFixed(10)}</p>
                     <p>K2 = {computedValues[0][1].toFixed(10)}</p>
