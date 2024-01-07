@@ -10,6 +10,40 @@ enum Model {
     Vanin = 2,
 }
 
+// TODO: add external links to the learning materials about the topic.
+// TODO: elaborate on the directionality of `E1` and `E2`.
+// TODO: consider adding `TeX` formulas to the documentation.
+
+/// Computes [elastic modules] for unidirectional composite.
+///
+/// ## Arguments
+///
+/// * `number_of_model` - the number of model, the discriminant in [`Model`].
+/// * `fibre_content` - the fibre content in the range from `0.0` to `1.0` where
+/// `0.0` is the matrix and `1.0` is the fibre.
+/// * `e_for_fiber` - the [Young's modulus] for fibre.
+/// * `nu_for_fiber` - the [Poisson's ratio] for fibre.
+/// * `e_for_matrix` - the [Young's modulus] for matrix.
+/// * `nu_for_matrix` - the [Poisson's ratio] for matrix.
+///
+/// ## Returns
+///
+/// Returns the array of elastic modules in the following order:
+///
+/// * `E1` - the [Young's modulus] in the direction of the fibre (parallel to the fibre).
+/// * `E2` - the [Young's modulus] in the direction "2" perpendicular to the fibre.
+/// * `E3` - the [Young's modulus] in the direction "3" perpendicular to the fibre.
+/// * `nu12` - the [Poisson's ratio] between the direction of the fibre and the direction "2".
+/// * `nu13` - the [Poisson's ratio] between the direction of the fibre and the direction "3".
+/// * `nu23` - the [Poisson's ratio] between the direction "2" and the direction "3".
+/// * `G12` - the [shear modulus] between the direction of the fibre and the direction "2".
+/// * `G13` - the [shear modulus] between the direction of the fibre and the direction "3".
+/// * `G23` - the [shear modulus] between the direction "2" and the direction "3".
+///
+/// [elastic modules]: https://en.wikipedia.org/wiki/Elastic_modulus
+/// [Young's modulus]: https://en.wikipedia.org/wiki/Young%27s_modulus
+/// [Poisson's ratio]: https://en.wikipedia.org/wiki/Poisson%27s_ratio
+/// [shear modulus]: https://en.wikipedia.org/wiki/Shear_modulus
 pub fn elastic_modules_for_unidirectional_composite(
     number_of_model: u8,
     fibre_content: f64,
@@ -31,10 +65,10 @@ pub fn elastic_modules_for_unidirectional_composite(
                 let e3 = 1.0 / (fibre_content / e_for_fiber + (1.0 - fibre_content) / e_for_matrix);
                 let nu12 = nu_for_fiber * fibre_content + nu_for_matrix * (1.0 - fibre_content);
                 let nu13 = nu_for_fiber * fibre_content + nu_for_matrix * (1.0 - fibre_content);
-                let nu23 = -1.0;
+                let nu23 = f64::NAN;
                 let g12 = fibre_content * g_for_fiber + g_for_matrix * (1.0 - fibre_content);
                 let g13 = fibre_content * g_for_fiber + g_for_matrix * (1.0 - fibre_content);
-                let g23 = -1.0;
+                let g23 = f64::NAN;
                 [e1, e2, e3, nu12, nu13, nu23, g12, g13, g23]
             }
             Model::Vanin => {
