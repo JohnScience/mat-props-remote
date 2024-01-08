@@ -8,6 +8,31 @@ enum Model {
     Vanin = 1,
 }
 
+/// Computes [thermal expansion] for the unidirectional composite.
+///
+/// ## Arguments
+///
+/// * `number_of_model` - the number of the selected model, represented by the discriminant in [`Model`].
+/// * `fibre_content` - volume fraction of the fiber in the composite material.
+/// * `e_for_fiber` - [Young's modulus] of the fiber material.
+/// * `nu_for_fiber` - [Poisson's ratio] of the fiber material.
+/// * `alpha_for_fiber` - [coefficient of thermal expansion] for the fiber material.
+/// * `e_for_matrix` - [Young's modulus] of the matrix material.
+/// * `nu_for_matrix` - [Poisson's ratio] of the matrix material.
+/// * `alpha_for_matrix` - [coefficient of thermal expansion] for the matrix material.
+///
+/// ## Returns
+///
+/// Returns the array of thermal expansions in the following order:
+///
+/// * `alpha1` - [thermal expansion] in the primary direction.
+/// * `alpha2` - [thermal expansion] in the secondary direction.
+/// * `alpha3` - [thermal expansion] in the tertiary direction.
+///
+/// [thermal expansion]: https://en.wikipedia.org/wiki/Thermal_expansion
+/// [Young's modulus]: https://en.wikipedia.org/wiki/Young%27s_modulus
+/// [Poisson's ratio]: https://en.wikipedia.org/wiki/Poisson%27s_ratio
+/// [coefficient of thermal expansion]: https://matmatch.com/learn/property/what-is-coefficient-of-thermal-expansion
 pub fn thermal_expansion_for_unidirectional_composite(
     number_of_model: u8,
     fibre_content: f64,

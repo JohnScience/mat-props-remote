@@ -8,6 +8,36 @@ enum Model {
     Vanin = 1,
 }
 
+/// Computes elastic modules for honeycomb structures.
+///
+/// ## Arguments
+///
+/// * `number_of_model` - the number of the selected model, represented by the discriminant in [`Model`].
+/// * `l_cell_side_size` - the side length of the hexagonal cell.
+/// * `h_cell_side_size` - the height of the hexagonal cell.
+/// * `wall_thickness` - the thickness of the cell walls.
+/// * `angle` - the angle of inclination of the hexagonal cell.
+/// * `e_for_honeycomb` - Young's modulus for the honeycomb material.
+/// * `nu_for_honeycomb` - Poisson's ratio for the honeycomb material.
+///
+/// ## Returns
+///
+/// Returns the array of elastic modules in the following order:
+///
+/// * `E1` - Young's modulus in the primary direction.
+/// * `E2` - Young's modulus in the secondary direction.
+/// * `E3` - Young's modulus in the tertiary direction.
+/// * `nu12` - Poisson's ratio between the primary and secondary directions.
+/// * `nu13` - Poisson's ratio between the primary and tertiary directions.
+/// * `nu23` - Poisson's ratio between the secondary and tertiary directions.
+/// * `G12` - Shear modulus between the primary and secondary directions.
+/// * `G13` - Shear modulus between the primary and tertiary directions.
+/// * `G23` - Shear modulus between the secondary and tertiary directions.
+///
+/// [elastic modules]: https://en.wikipedia.org/wiki/Elastic_modulus
+/// [Young's modulus]: https://en.wikipedia.org/wiki/Young%27s_modulus
+/// [Poisson's ratio]: https://en.wikipedia.org/wiki/Poisson%27s_ratio
+/// [shear modulus]: https://en.wikipedia.org/wiki/Shear_modulus
 pub fn elastic_modules_for_honeycomb(
     number_of_model: u8,
     l_cell_side_size: f64,

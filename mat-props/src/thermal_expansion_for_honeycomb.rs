@@ -8,6 +8,26 @@ enum Model {
     Vanin = 1,
 }
 
+/// Computes [thermal expansion] for the honeycomb structure.
+///
+/// ## Arguments
+///
+/// * `number_of_model` - the number of the selected model, represented by the discriminant in [`Model`].
+/// * `l_cell_side_size` - side length of the hexagonal cells in the honeycomb.
+/// * `h_cell_side_size` - height of the honeycomb cells.
+/// * `wall_thickness` - wall thickness.
+/// * `angle` - angle of the honeycomb structure.
+/// * `alpha_for_honeycomb` - coefficient of thermal expansion for the honeycomb material.
+///
+/// ## Returns
+///
+/// Returns the array of thermal expansions in the following order:
+///
+/// * `alpha1` - [thermal expansion] in the primary direction.
+/// * `alpha2` - [thermal expansion] in the secondary direction.
+/// * `alpha3` - [thermal expansion] in the tertiary direction.
+///
+/// [thermal expansion]: https://en.wikipedia.org/wiki/Thermal_expansion
 pub fn thermal_expansion_for_honeycomb(
     number_of_model: u8,
     l_cell_side_size: f64,

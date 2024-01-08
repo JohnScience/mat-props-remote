@@ -11,6 +11,24 @@ enum Model {
     Vanin = 2,
 }
 
+/// Computes [thermal conductivity] for unidirectional composite.
+///
+/// ## Arguments
+///
+/// * `number_of_model` - the number of the selected model, represented by the discriminant in [`Model`].
+/// * `fibre_content` - the fibre content in the range from `0.0` to `1.0` where `0.0` is the matrix and `1.0` is the fibre.
+/// * `k_for_fiber` - the thermal conductivity for the fibre.
+/// * `k_for_matrix` - the thermal conductivity for the matrix.
+///
+/// ## Returns
+///
+/// Returns the array of thermal conductivities in the following order:
+///
+/// * `k1` - [thermal conductivity] in the primary direction.
+/// * `k2` - [thermal conductivity] in the secondary direction.
+/// * `k3` - [thermal conductivity] in the tertiary direction.
+///
+/// [thermal conductivity]: https://en.wikipedia.org/wiki/Thermal_conductivity
 pub fn thermal_conductivity_for_unidirectional_composite(
     number_of_model: u8,
     fibre_content: f64,
