@@ -1,5 +1,6 @@
 import { FixedArray } from "./util";
 
+// https://en.wikipedia.org/wiki/Endianness
 const endianness /*uint8*/ = (() => {
     const num = new Uint16Array([0x0100]);
     const view = new Uint8Array(num.buffer);

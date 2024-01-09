@@ -4,9 +4,9 @@ use num_traits::FromPrimitive;
 
 #[derive(Primitive)]
 enum Model {
-    /// Правило смеси. https://en.wikipedia.org/wiki/Rule_of_mixtures
+    /// https://en.wikipedia.org/wiki/Rule_of_mixtures
     RuleOfMixtures = 1,
-    /// Модель Ванина.
+    /// Vanin's model.
     Vanin = 2,
 }
 

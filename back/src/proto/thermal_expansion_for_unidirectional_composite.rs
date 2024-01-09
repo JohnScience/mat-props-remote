@@ -51,3 +51,13 @@ decl_req_resp_message_pair!(
         }
     }
 );
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn see_py_struct_format_string() {
+        let s = ThermalExpansionForUnidirectionalCompositeArgsMessage::py_struct_format_string();
+        println!("{}", s);
+    }
+}

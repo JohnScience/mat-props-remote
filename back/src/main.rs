@@ -388,7 +388,7 @@ async fn thermal_expansion_for_honeycomb(
         .body(parcel)
 }
 
-#[post("/openapi.json")]
+#[post("/api-doc/openapi.json")]
 async fn serve_openapi_json() -> impl Responder {
     let json = ApiDoc::openapi().to_pretty_json().unwrap();
     actix_web::HttpResponse::Ok().body(json)
@@ -414,11 +414,11 @@ async fn main() -> std::io::Result<()> {
             .service(thermal_expansion_for_honeycomb)
             .service(
                 SwaggerUi::new("/swagger-ui/{_:.*}")
-                    .url("/api-docs/openapi.json", ApiDoc::openapi()),
+                    .url("/api-doc/openapi.json", ApiDoc::openapi()),
             )
             .service(serve_openapi_json)
     })
-    .bind(("0.0.0.0", 8080))?
+    .bind(("localhost", 8080))?
     .run()
     .await
 }
