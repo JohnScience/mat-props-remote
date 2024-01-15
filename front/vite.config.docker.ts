@@ -13,7 +13,8 @@ export default defineConfig({
   server: {
     hmr: false,
     watch: {
-      usePolling: false
+      usePolling: true,
+      interval: 1000,
     }
   }
 })

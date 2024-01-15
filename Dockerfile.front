@@ -22,4 +22,4 @@ COPY --from=builder /xlsx-writer/pkg/ ./src/xlsx-writer/pkg/
 
 EXPOSE 5173
 
-CMD ["vite", "--host"]
+ENTRYPOINT ["vite", "--host"]
