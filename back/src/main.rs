@@ -1,4 +1,5 @@
 use actix_web::{get, post, App, HttpServer, Responder};
+use dotenv::dotenv;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -396,6 +397,7 @@ async fn serve_openapi_json() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    dotenv().unwrap();
     println!(
         "Endianness: {}.",
         if cfg!(target_endian = "big") {
@@ -418,7 +420,7 @@ async fn main() -> std::io::Result<()> {
             )
             .service(serve_openapi_json)
     })
-    .bind(("localhost", 8080))?
+    .bind((std::env::var("IP_ADDR").unwrap(), 8080))?
     .run()
     .await
 }

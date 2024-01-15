@@ -46,7 +46,10 @@ WORKDIR /app
 FROM alpine as runtime
 
 # Copy only the compiled binary from the builder stage to this image
-COPY --from=builder /app/back/target/x86_64-unknown-linux-musl/release/back /bin/back
+COPY --from=builder /app/back/target/x86_64-unknown-linux-musl/release/back /app/back
+COPY --from=builder /app/back/.env.docker /app/.env
+
+WORKDIR /app
 
 # Specify the command to run when the container starts
-CMD ["/bin/back"]
+CMD ["./back"]
