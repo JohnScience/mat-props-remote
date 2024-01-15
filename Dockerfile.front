@@ -1,0 +1,25 @@
+# builder is a Rust image because we need cargo to build wasm modules
+FROM rust:latest as builder
+
+WORKDIR /xlsx-writer
+
+COPY front/src/xlsx-writer/ ./
+
+RUN cargo install wasm-pack
+
+RUN wasm-pack build --target web --release
+
+FROM node:18.16.0-alpine3.17 as runtime
+
+WORKDIR /app
+
+COPY front/package.json ./
+RUN npm install
+RUN npm install -g vite
+COPY front/ ./
+COPY front/vite.config.docker.ts vite.config.ts
+COPY --from=builder /xlsx-writer/pkg/ ./src/xlsx-writer/pkg/
+
+EXPOSE 5173
+
+CMD ["vite", "--host"]

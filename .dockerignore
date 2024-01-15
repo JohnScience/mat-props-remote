@@ -1,0 +1,5 @@
+front/dist
+front/node_modules
+front/src/xlsx-writer/target
+front/src/xlsx-writer/pkg
+front/vite.config.ts
