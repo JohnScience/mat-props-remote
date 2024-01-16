@@ -1,5 +1,13 @@
 # mat-props-remote
 
+## Testing the mutli-container application
+
+```console
+docker compose up
+```
+
+After that you can visit `http://localhost:5173/` to see the frontend and `http://localhost:8080/swagger-ui/` to see the API documentation.
+
 ## One liner for testing the backend
 
 ```console
